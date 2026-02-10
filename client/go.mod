@@ -3,7 +3,7 @@ module github.com/sw5005-sus/ceramicraft-user-mservice/client
 go 1.24.9
 
 require (
-	github.com/sw5005-sus/ceramicraft-user-mservice/common v0.0.1
+	github.com/sw5005-sus/ceramicraft-user-mservice/common v0.0.2
 	google.golang.org/grpc v1.75.1
 )
 
