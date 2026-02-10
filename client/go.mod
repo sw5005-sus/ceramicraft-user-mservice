@@ -1,6 +1,6 @@
 module github.com/sw5005-sus/ceramicraft-user-mservice/client
 
-go 1.24.9
+go 1.25.7
 
 require (
 	github.com/sw5005-sus/ceramicraft-user-mservice/common v0.0.3
