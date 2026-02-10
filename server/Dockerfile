@@ -1,5 +1,7 @@
 # Use the official Go image with version 1.24
-FROM golang:1.24.9-alpine AS builder 
+FROM golang:1.25.7-alpine AS builder 
+
+RUN apk add --no-cache curl
 
 # Set the working directory inside the container
 WORKDIR /app
