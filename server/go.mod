@@ -1,9 +1,8 @@
-module github.com/NUS-ISS-Agile-Team/ceramicraft-user-mservice/server
+module github.com/sw5005-sus/ceramicraft-user-mservice/server
 
 go 1.24.9
 
 require (
-	github.com/NUS-ISS-Agile-Team/ceramicraft-user-mservice/common v0.0.0-20251001113629-170f5abf70f9
 	github.com/gin-gonic/gin v1.11.0
 	github.com/go-playground/validator/v10 v10.27.0
 	github.com/spf13/viper v1.21.0
@@ -81,6 +80,7 @@ require (
 	github.com/spf13/pflag v1.0.10 // indirect
 	github.com/stretchr/objx v0.5.2 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
+	github.com/sw5005-sus/ceramicraft-user-mservice/common v0.0.1
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.3.0 // indirect
 	go.uber.org/mock v0.5.0 // indirect

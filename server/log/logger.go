@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/NUS-ISS-Agile-Team/ceramicraft-user-mservice/server/config"
+	"github.com/sw5005-sus/ceramicraft-user-mservice/server/config"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )

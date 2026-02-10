@@ -5,10 +5,10 @@ import (
 	"errors"
 	"sync"
 
-	"github.com/NUS-ISS-Agile-Team/ceramicraft-user-mservice/server/log"
-	"github.com/NUS-ISS-Agile-Team/ceramicraft-user-mservice/server/repository"
+	"github.com/sw5005-sus/ceramicraft-user-mservice/server/log"
+	"github.com/sw5005-sus/ceramicraft-user-mservice/server/repository"
 
-	"github.com/NUS-ISS-Agile-Team/ceramicraft-user-mservice/server/repository/model"
+	"github.com/sw5005-sus/ceramicraft-user-mservice/server/repository/model"
 	"gorm.io/gorm"
 )
 

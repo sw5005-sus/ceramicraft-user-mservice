@@ -7,9 +7,9 @@ import (
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
 
-	"github.com/NUS-ISS-Agile-Team/ceramicraft-user-mservice/common/middleware"
-	_ "github.com/NUS-ISS-Agile-Team/ceramicraft-user-mservice/server/docs"
-	"github.com/NUS-ISS-Agile-Team/ceramicraft-user-mservice/server/http/api"
+	"github.com/sw5005-sus/ceramicraft-user-mservice/common/middleware"
+	_ "github.com/sw5005-sus/ceramicraft-user-mservice/server/docs"
+	"github.com/sw5005-sus/ceramicraft-user-mservice/server/http/api"
 	swaggerFiles "github.com/swaggo/files"
 	gs "github.com/swaggo/gin-swagger"
 )

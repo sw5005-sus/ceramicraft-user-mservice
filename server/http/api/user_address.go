@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/NUS-ISS-Agile-Team/ceramicraft-user-mservice/server/http/data"
-	"github.com/NUS-ISS-Agile-Team/ceramicraft-user-mservice/server/service"
 	"github.com/gin-gonic/gin"
+	"github.com/sw5005-sus/ceramicraft-user-mservice/server/http/data"
+	"github.com/sw5005-sus/ceramicraft-user-mservice/server/service"
 )
 
 // Create UserAddress.

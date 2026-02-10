@@ -7,13 +7,13 @@ import (
 	"runtime/debug"
 	"syscall"
 
-	"github.com/NUS-ISS-Agile-Team/ceramicraft-user-mservice/common/utils"
-	"github.com/NUS-ISS-Agile-Team/ceramicraft-user-mservice/server/config"
-	"github.com/NUS-ISS-Agile-Team/ceramicraft-user-mservice/server/grpc"
-	"github.com/NUS-ISS-Agile-Team/ceramicraft-user-mservice/server/http"
-	"github.com/NUS-ISS-Agile-Team/ceramicraft-user-mservice/server/log"
-	"github.com/NUS-ISS-Agile-Team/ceramicraft-user-mservice/server/mq"
-	"github.com/NUS-ISS-Agile-Team/ceramicraft-user-mservice/server/repository"
+	"github.com/sw5005-sus/ceramicraft-user-mservice/common/utils"
+	"github.com/sw5005-sus/ceramicraft-user-mservice/server/config"
+	"github.com/sw5005-sus/ceramicraft-user-mservice/server/grpc"
+	"github.com/sw5005-sus/ceramicraft-user-mservice/server/http"
+	"github.com/sw5005-sus/ceramicraft-user-mservice/server/log"
+	"github.com/sw5005-sus/ceramicraft-user-mservice/server/mq"
+	"github.com/sw5005-sus/ceramicraft-user-mservice/server/repository"
 )
 
 var (

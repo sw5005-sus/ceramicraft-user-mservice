@@ -3,8 +3,8 @@ package grpc
 import (
 	"context"
 
-	"github.com/NUS-ISS-Agile-Team/ceramicraft-user-mservice/common/userpb"
-	"github.com/NUS-ISS-Agile-Team/ceramicraft-user-mservice/server/log"
+	"github.com/sw5005-sus/ceramicraft-user-mservice/common/userpb"
+	"github.com/sw5005-sus/ceramicraft-user-mservice/server/log"
 )
 
 type UserService struct {

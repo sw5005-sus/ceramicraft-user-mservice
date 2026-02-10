@@ -3,7 +3,7 @@ package proxy
 import (
 	"sync"
 
-	"github.com/NUS-ISS-Agile-Team/ceramicraft-user-mservice/server/config"
+	"github.com/sw5005-sus/ceramicraft-user-mservice/server/config"
 	"gopkg.in/mail.v2"
 )
 

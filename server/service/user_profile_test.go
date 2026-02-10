@@ -5,11 +5,11 @@ import (
 	"database/sql"
 	"testing"
 
-	"github.com/NUS-ISS-Agile-Team/ceramicraft-user-mservice/server/http/data"
-	"github.com/NUS-ISS-Agile-Team/ceramicraft-user-mservice/server/repository/dao/mocks"
-	"github.com/NUS-ISS-Agile-Team/ceramicraft-user-mservice/server/repository/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/sw5005-sus/ceramicraft-user-mservice/server/http/data"
+	"github.com/sw5005-sus/ceramicraft-user-mservice/server/repository/dao/mocks"
+	"github.com/sw5005-sus/ceramicraft-user-mservice/server/repository/model"
 )
 
 func TestGetUserProfileService(t *testing.T) {

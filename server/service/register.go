@@ -9,13 +9,13 @@ import (
 	"sync"
 	"time"
 
-	"github.com/NUS-ISS-Agile-Team/ceramicraft-user-mservice/server/config"
-	"github.com/NUS-ISS-Agile-Team/ceramicraft-user-mservice/server/log"
-	"github.com/NUS-ISS-Agile-Team/ceramicraft-user-mservice/server/mq"
-	"github.com/NUS-ISS-Agile-Team/ceramicraft-user-mservice/server/proxy"
-	"github.com/NUS-ISS-Agile-Team/ceramicraft-user-mservice/server/repository"
-	"github.com/NUS-ISS-Agile-Team/ceramicraft-user-mservice/server/repository/dao"
-	"github.com/NUS-ISS-Agile-Team/ceramicraft-user-mservice/server/repository/model"
+	"github.com/sw5005-sus/ceramicraft-user-mservice/server/config"
+	"github.com/sw5005-sus/ceramicraft-user-mservice/server/log"
+	"github.com/sw5005-sus/ceramicraft-user-mservice/server/mq"
+	"github.com/sw5005-sus/ceramicraft-user-mservice/server/proxy"
+	"github.com/sw5005-sus/ceramicraft-user-mservice/server/repository"
+	"github.com/sw5005-sus/ceramicraft-user-mservice/server/repository/dao"
+	"github.com/sw5005-sus/ceramicraft-user-mservice/server/repository/model"
 	"gorm.io/gorm"
 )
 
