@@ -1,5 +1,5 @@
 services:
-  mysql:
+  mysql-container:
     image: mysql:8.0
     container_name: mysql-container
     environment:
@@ -9,10 +9,13 @@ services:
     tmpfs: /var/lib/mysql
     networks:
       ci-net:
-        aliases:
-          - mysql-container   
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_PASSWORD}"]
+      interval: 5s
+      timeout: 2s
+      retries: 5
 
-  kafka:
+  kafka-container:
     image: confluentinc/cp-kafka:7.5.0
     container_name: kafka-container
     ports:
@@ -27,9 +30,7 @@ services:
         kafka-server-start /etc/kafka/kraft/server.properties
       "
     networks: 
-      ci-net:
-        aliases:
-          - kafka-container   
+      ci-net: 
   ceramicraft-user-mservice:
     build:
       context: ../../server
@@ -41,15 +42,18 @@ services:
       - SMTP_EMAIL_FROM=${SMTP_EMAIL_FROM}
       - JWT_SECRET=${JWT_SECRET}
     depends_on:
-      - mysql
-      - kafka
+      mysql-container:
+        condition: service_healthy
+      kafka-container:
+        condition: service_started
+
     networks:
       - ci-net
     ports:
-      - "8080:8080"   # 只给宿主机（ZAP）用
+      - "8080:8080"   
     command: ["sh", "-c", "apk add --no-cache netcat-openbsd && chmod +x /app/wait-for.sh && ./wait-for.sh mysql-container 3306 ./main"]
     volumes:
-      - ./wait-for.sh:/app/wait-for.sh   # CI 专用配置
+      - ./wait-for.sh:/app/wait-for.sh   # CI only wait-for script
     user: root
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/user-ms/v1/ping"]
