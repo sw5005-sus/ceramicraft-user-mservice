@@ -1,4 +1,4 @@
-module github.com/NUS-ISS-Agile-Team/ceramicraft-user-mservice/common
+module github.com/sw5005-sus/ceramicraft-user-mservice/common
 
 go 1.24.9
 

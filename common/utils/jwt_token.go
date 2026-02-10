@@ -6,8 +6,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/NUS-ISS-Agile-Team/ceramicraft-user-mservice/common/bo"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/sw5005-sus/ceramicraft-user-mservice/common/bo"
 )
 
 var jwtSecret string
