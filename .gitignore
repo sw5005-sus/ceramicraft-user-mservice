@@ -33,3 +33,5 @@ go.work.sum
 
 server/logs
 .env
+
+.DS_Store

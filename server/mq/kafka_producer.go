@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/NUS-ISS-Agile-Team/ceramicraft-user-mservice/server/config"
-	"github.com/NUS-ISS-Agile-Team/ceramicraft-user-mservice/server/log"
 	"github.com/segmentio/kafka-go"
+	"github.com/sw5005-sus/ceramicraft-user-mservice/server/config"
+	"github.com/sw5005-sus/ceramicraft-user-mservice/server/log"
 )
 
 var (

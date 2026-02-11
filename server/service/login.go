@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/NUS-ISS-Agile-Team/ceramicraft-user-mservice/common/bo"
-	"github.com/NUS-ISS-Agile-Team/ceramicraft-user-mservice/common/utils"
-	"github.com/NUS-ISS-Agile-Team/ceramicraft-user-mservice/server/log"
-	"github.com/NUS-ISS-Agile-Team/ceramicraft-user-mservice/server/repository/dao"
+	"github.com/sw5005-sus/ceramicraft-user-mservice/common/bo"
+	"github.com/sw5005-sus/ceramicraft-user-mservice/common/utils"
+	"github.com/sw5005-sus/ceramicraft-user-mservice/server/log"
+	"github.com/sw5005-sus/ceramicraft-user-mservice/server/repository/dao"
 )
 
 type LoginService interface {

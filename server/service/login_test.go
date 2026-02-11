@@ -5,12 +5,12 @@ import (
 	"os"
 	"testing"
 
-	"github.com/NUS-ISS-Agile-Team/ceramicraft-user-mservice/common/utils"
-	"github.com/NUS-ISS-Agile-Team/ceramicraft-user-mservice/server/config"
-	"github.com/NUS-ISS-Agile-Team/ceramicraft-user-mservice/server/log"
-	"github.com/NUS-ISS-Agile-Team/ceramicraft-user-mservice/server/repository/dao/mocks"
-	"github.com/NUS-ISS-Agile-Team/ceramicraft-user-mservice/server/repository/model"
 	"github.com/stretchr/testify/mock"
+	"github.com/sw5005-sus/ceramicraft-user-mservice/common/utils"
+	"github.com/sw5005-sus/ceramicraft-user-mservice/server/config"
+	"github.com/sw5005-sus/ceramicraft-user-mservice/server/log"
+	"github.com/sw5005-sus/ceramicraft-user-mservice/server/repository/dao/mocks"
+	"github.com/sw5005-sus/ceramicraft-user-mservice/server/repository/model"
 )
 
 func initEnv() {

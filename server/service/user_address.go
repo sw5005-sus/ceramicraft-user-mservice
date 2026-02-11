@@ -7,10 +7,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/NUS-ISS-Agile-Team/ceramicraft-user-mservice/server/http/data"
-	"github.com/NUS-ISS-Agile-Team/ceramicraft-user-mservice/server/log"
-	"github.com/NUS-ISS-Agile-Team/ceramicraft-user-mservice/server/repository/dao"
-	"github.com/NUS-ISS-Agile-Team/ceramicraft-user-mservice/server/repository/model"
+	"github.com/sw5005-sus/ceramicraft-user-mservice/server/http/data"
+	"github.com/sw5005-sus/ceramicraft-user-mservice/server/log"
+	"github.com/sw5005-sus/ceramicraft-user-mservice/server/repository/dao"
+	"github.com/sw5005-sus/ceramicraft-user-mservice/server/repository/model"
 )
 
 type UserAddressService interface {

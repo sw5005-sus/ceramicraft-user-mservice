@@ -5,9 +5,9 @@ import (
 	"database/sql"
 	"sync"
 
-	"github.com/NUS-ISS-Agile-Team/ceramicraft-user-mservice/server/http/data"
-	"github.com/NUS-ISS-Agile-Team/ceramicraft-user-mservice/server/log"
-	"github.com/NUS-ISS-Agile-Team/ceramicraft-user-mservice/server/repository/dao"
+	"github.com/sw5005-sus/ceramicraft-user-mservice/server/http/data"
+	"github.com/sw5005-sus/ceramicraft-user-mservice/server/log"
+	"github.com/sw5005-sus/ceramicraft-user-mservice/server/repository/dao"
 )
 
 type UserProfileService interface {

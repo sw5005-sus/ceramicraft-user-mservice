@@ -7,12 +7,12 @@ import (
 	"testing"
 	"time"
 
-	mq_mock "github.com/NUS-ISS-Agile-Team/ceramicraft-user-mservice/server/mq/mocks"
-	proxy_mock "github.com/NUS-ISS-Agile-Team/ceramicraft-user-mservice/server/proxy/mocks"
-	dao_mock "github.com/NUS-ISS-Agile-Team/ceramicraft-user-mservice/server/repository/dao/mocks"
-	"github.com/NUS-ISS-Agile-Team/ceramicraft-user-mservice/server/repository/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	mq_mock "github.com/sw5005-sus/ceramicraft-user-mservice/server/mq/mocks"
+	proxy_mock "github.com/sw5005-sus/ceramicraft-user-mservice/server/proxy/mocks"
+	dao_mock "github.com/sw5005-sus/ceramicraft-user-mservice/server/repository/dao/mocks"
+	"github.com/sw5005-sus/ceramicraft-user-mservice/server/repository/model"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )

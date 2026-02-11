@@ -3,7 +3,7 @@ package mq
 import (
 	"encoding/json"
 
-	"github.com/NUS-ISS-Agile-Team/ceramicraft-user-mservice/server/log"
+	"github.com/sw5005-sus/ceramicraft-user-mservice/server/log"
 )
 
 type UserActivatedEvent struct {

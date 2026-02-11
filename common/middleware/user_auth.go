@@ -3,8 +3,8 @@ package middleware
 import (
 	"net/http"
 
-	"github.com/NUS-ISS-Agile-Team/ceramicraft-user-mservice/common/utils"
 	"github.com/gin-gonic/gin"
+	"github.com/sw5005-sus/ceramicraft-user-mservice/common/utils"
 )
 
 func AuthMiddleware() gin.HandlerFunc {
