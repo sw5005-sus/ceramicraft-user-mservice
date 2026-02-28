@@ -11,12 +11,13 @@ var (
 )
 
 type Conf struct {
-	GrpcConfig  *GrpcConfig  `mapstructure:"grpc"`
-	LogConfig   *LogConfig   `mapstructure:"log"`
-	HttpConfig  *HttpConfig  `mapstructure:"http"`
-	MySQLConfig *MySQL       `mapstructure:"mysql"`
-	EmailConfig *EmailConfig `mapstructure:"email"`
-	KafkaConfig *KafkaConfig `mapstructure:"kafka"`
+	GrpcConfig    *GrpcConfig    `mapstructure:"grpc"`
+	LogConfig     *LogConfig     `mapstructure:"log"`
+	HttpConfig    *HttpConfig    `mapstructure:"http"`
+	MySQLConfig   *MySQL         `mapstructure:"mysql"`
+	EmailConfig   *EmailConfig   `mapstructure:"email"`
+	KafkaConfig   *KafkaConfig   `mapstructure:"kafka"`
+	ZitadelConfig *ZitadelConfig `mapstructure:"zitadel"`
 }
 
 type EmailConfig struct {
@@ -58,6 +59,10 @@ type KafkaConfig struct {
 	Retries            int      `mapstructure:"retries"`
 	BatchSize          int      `mapstructure:"batch_size"`
 	BatchTimeoutMillis int      `mapstructure:"batch_timeout_millis"`
+}
+
+type ZitadelConfig struct {
+	Host string `mapstructure:"host"`
 }
 
 func Init() {

@@ -45,6 +45,7 @@ func NewRouter() *gin.Engine {
 		v1UnAuthed.POST("/customer/login", api.UserLogin)
 		v1UnAuthed.POST("/customer/users", api.Register)
 		v1UnAuthed.PUT("/customer/users/activate", api.Validate)
+		v1UnAuthed.POST("/customer/oauth-callback", api.OAuthCallback)
 
 		v1UnAuthed.POST("/merchant/login", api.UserLogin)
 	}

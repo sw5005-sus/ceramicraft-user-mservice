@@ -20,6 +20,7 @@ import (
 )
 
 type RegisterService interface {
+	OAuthLoginCallback(ctx context.Context, accessToken string) error
 	Register(ctx context.Context, email, password string) error
 	VerifyAndActivate(ctx context.Context, activationCode string) error
 }
@@ -30,6 +31,7 @@ type RegisterImpl struct {
 	emailService   proxy.EmailService
 	txBeginner     repository.TxBeginner
 	kafkaProducer  mq.KafkaProducer
+	zitadelProxy   proxy.ZitadelProxy
 }
 
 var (
@@ -48,10 +50,58 @@ func GetRegisterService() *RegisterImpl {
 				emailService:   proxy.GetEmailInstance(),
 				txBeginner:     repository.DB,
 				kafkaProducer:  mq.GetKafkaProducer(),
+				zitadelProxy:   proxy.GetZitadelProxy(),
 			}
 		}
 	})
 	return registerServiceInst
+}
+
+func (rs *RegisterImpl) OAuthLoginCallback(ctx context.Context, accessToken string) error {
+	user, err := rs.zitadelProxy.VerifyTokenWithBackendIdentity(ctx, accessToken)
+	if err != nil {
+		log.Logger.Errorf("Failed to verify token with Zitadel: %v", err)
+	}
+	dbUser, err := rs.userDao.GetUserByEmail(ctx, user.Email)
+	if err != nil {
+		log.Logger.Errorf("Failed to get user by email: %v", err)
+		return err
+	}
+	if dbUser != nil && dbUser.Status == model.UserStatusActive {
+		log.Logger.Infof("User already exists and active with email: %s", user.Email)
+		return nil
+	} else if dbUser == nil {
+		currentTime := time.Now()
+		user.Status = model.UserStatusInactive
+		user.CreatedAt = currentTime
+		user.UpdatedAt = currentTime
+		userId, err := rs.userDao.CreateUser(ctx, user)
+		if err != nil {
+			log.Logger.Errorf("Failed to create user: %v", err)
+			return err
+		}
+		user.ID = userId
+	} else {
+		user.ID = dbUser.ID
+	}
+
+	err = rs.syncLocalUserId2Zitadel(ctx, user)
+	if err != nil {
+		log.Logger.Errorf("Failed to produce user activated event: %v", err)
+		return err
+	}
+	log.Logger.Infof("Local userId sync to zitadel done.\tuserId: %d\tsub=%s", user.ID, user.ZitadelSub)
+	err = rs.activationNotify(ctx, user.ID)
+	if err != nil {
+		return err
+	}
+	log.Logger.Infof("User activation event produced.\tuserId: %d\tsub=%s", user.ID, user.ZitadelSub)
+	err = rs.saveActiveStatus(ctx, user)
+	if err != nil {
+		return err
+	}
+	log.Logger.Infof("OAuth user activation status update done.\tuserId=%d\tsub=%s", user.ID, user.ZitadelSub)
+	return nil
 }
 
 func (rs *RegisterImpl) Register(ctx context.Context, email, password string) error {
@@ -131,8 +181,7 @@ func (rs *RegisterImpl) VerifyAndActivate(ctx context.Context, activationCode st
 			return err
 		}
 		log.Logger.Infof("User activation %d marked as used", userActivation.ID)
-		eventMsg := &mq.UserActivatedEvent{UserID: userActivation.UserID, ActivateTime: curTime.Unix()}
-		err = rs.kafkaProducer.Produce(ctx, config.Config.KafkaConfig.UserActivatedTopic, fmt.Sprintf("%d", userActivation.UserID), eventMsg.ToBytes())
+		err = rs.activationNotify(ctx, userActivation.UserID)
 		if err != nil {
 			log.Logger.Errorf("Failed to produce user activated event: %v", err)
 			return err
@@ -144,6 +193,23 @@ func (rs *RegisterImpl) VerifyAndActivate(ctx context.Context, activationCode st
 		return err
 	}
 	return nil
+}
+
+func (rs *RegisterImpl) activationNotify(ctx context.Context, userId int) error {
+	eventMsg := &mq.UserActivatedEvent{UserID: userId, ActivateTime: time.Now().Unix()}
+	return rs.kafkaProducer.Produce(ctx, config.Config.KafkaConfig.UserActivatedTopic, fmt.Sprintf("%d", userId), eventMsg.ToBytes())
+}
+
+func (rs *RegisterImpl) syncLocalUserId2Zitadel(ctx context.Context, user *model.User) error {
+	return rs.zitadelProxy.SyncMeta2Zitadel(ctx, user)
+}
+
+func (rs *RegisterImpl) saveActiveStatus(ctx context.Context, user *model.User) error {
+	user.Status = model.UserStatusActive
+	currentTime := time.Now()
+	user.ActivateTime = &currentTime
+	user.UpdatedAt = currentTime
+	return rs.userDao.UpdateUser(ctx, user)
 }
 
 func generateVerificationCode() (string, error) {
