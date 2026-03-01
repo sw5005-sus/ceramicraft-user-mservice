@@ -13,6 +13,7 @@ import (
 	"github.com/sw5005-sus/ceramicraft-user-mservice/server/http"
 	"github.com/sw5005-sus/ceramicraft-user-mservice/server/log"
 	"github.com/sw5005-sus/ceramicraft-user-mservice/server/mq"
+	"github.com/sw5005-sus/ceramicraft-user-mservice/server/proxy"
 	"github.com/sw5005-sus/ceramicraft-user-mservice/server/repository"
 )
 
@@ -31,6 +32,8 @@ func main() {
 	log.Logger.Info("Database initialized.")
 	mq.InitKafka()
 	log.Logger.Info("Kafka initialized.")
+	proxy.InitZitadel()
+	log.Logger.Info("Zitadel proxy initialized.")
 	go grpc.Init(sigCh)
 	go http.Init(sigCh)
 	// listen terminage signal

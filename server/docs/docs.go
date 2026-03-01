@@ -15,6 +15,41 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/user-ms/v1/customer/oauth-callback": {
+            "post": {
+                "description": "This endpoint allows a new user to register by Zitadel access_token.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Register"
+                ],
+                "summary": "Register a new user authed by Zitadel",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Insert your access token with 'Bearer ' prefix",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/data.BaseResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/user-ms/v1/customer/users/self": {
             "get": {
                 "description": "This endpoint allows current login user fetch his/her profile in JSON format.",

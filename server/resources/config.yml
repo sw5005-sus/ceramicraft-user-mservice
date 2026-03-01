@@ -29,3 +29,6 @@ kafka:
   retries: 3
   batch_timeout_millis: 5
   batch_size: 16384
+
+zitadel:
+  host: "https://cerami-t6ihrd.us1.zitadel.cloud"

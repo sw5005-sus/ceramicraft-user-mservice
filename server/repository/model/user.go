@@ -12,6 +12,7 @@ const (
 type User struct {
 	ID           int        `gorm:"primaryKey"`
 	Email        string     `gorm:"type:varchar(128);unique;not null"`
+	ZitadelSub   string     `gorm:"type:varchar(128);default:''"`
 	Password     string     `gorm:"type:varchar(255);not null"`
 	Status       int        `gorm:"type:int;not null"`
 	Name         string     `gorm:"type:varchar(64)"`

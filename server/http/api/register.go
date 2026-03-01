@@ -2,11 +2,38 @@ package api
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sw5005-sus/ceramicraft-user-mservice/server/http/data"
 	"github.com/sw5005-sus/ceramicraft-user-mservice/server/service"
 )
+
+// OAuthCallback handles Zitadel login/register callback.
+// @Summary Register a new user authed by Zitadel
+// @Description This endpoint allows a new user to register by Zitadel access_token.
+// @Tags Register
+// @Accept json
+// @Produce json
+// @Param        Authorization  header    string  true  "Insert your access token with 'Bearer ' prefix"
+// @Success 200
+// @Failure 401 {object} data.BaseResponse
+// @Router /user-ms/v1/customer/oauth-callback [post]
+func OAuthCallback(c *gin.Context) {
+	accessToken := GetAccessToken(c)
+	if accessToken == "" {
+		c.JSON(http.StatusBadRequest, data.BaseResponse{Code: http.StatusBadRequest, ErrMsg: "Authorization header missing or invalid"})
+		return
+	}
+
+	err := service.GetRegisterService().OAuthLoginCallback(c.Request.Context(), accessToken)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, data.BaseResponse{Code: http.StatusInternalServerError, ErrMsg: err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, data.BaseResponse{Code: http.StatusOK, ErrMsg: "Login/Register successful"})
+}
 
 // Register handles the user registration process.
 // @Summary Register a new user
@@ -56,4 +83,19 @@ func Validate(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "Activation successful, you can now log in"})
+}
+
+// GetAccessToken extracts the access token from the Authorization header in the incoming HTTP request.
+func GetAccessToken(c *gin.Context) string {
+	authHeader := c.GetHeader("Authorization")
+	if authHeader == "" {
+		return ""
+	}
+
+	parts := strings.SplitN(authHeader, " ", 2)
+	if len(parts) == 2 && parts[0] == "Bearer" {
+		return parts[1]
+	}
+
+	return ""
 }
