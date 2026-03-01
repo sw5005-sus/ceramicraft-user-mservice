@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -17,9 +16,11 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/sw5005-sus/ceramicraft-user-mservice/server/config"
+	"github.com/sw5005-sus/ceramicraft-user-mservice/server/log"
 	"github.com/sw5005-sus/ceramicraft-user-mservice/server/repository/model"
 )
 
+//go:generate mockery --name ZitadelProxy --output ./mocks --case underscore
 type ZitadelProxy interface {
 	VerifyTokenWithBackendIdentity(ctx context.Context, accessToken string) (*model.User, error)
 	SyncMeta2Zitadel(ctx context.Context, user *model.User) error
@@ -29,6 +30,7 @@ type zitadelProxyImpl struct {
 	apiKey      *ZitadelAppKey
 	mngKey      *ZitadelServiceKey
 	accessToken *ZitadelAccessToken
+	lock        sync.Mutex
 }
 
 var (
@@ -40,7 +42,10 @@ func InitZitadel() {
 	GetZitadelProxy()
 	err := zitadelProxyInstance.loadKey()
 	if err != nil {
-		log.Fatal("cannot load key :", err)
+		panic(err)
+	}
+	if zitadelProxyInstance.apiKey == nil || zitadelProxyInstance.mngKey == nil {
+		panic("failed to load ZITADEL keys from environment variables")
 	}
 }
 
@@ -125,6 +130,11 @@ func (z *zitadelProxyImpl) VerifyTokenWithBackendIdentity(ctx context.Context, a
 
 	// request ZITADEL
 	resp, err := http.Post(introspectURL, "application/x-www-form-urlencoded", strings.NewReader(form.Encode()))
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			log.Logger.Errorf("failed to close response body: %v", err)
+		}
+	}()
 	if err != nil {
 		return nil, err
 	}
@@ -133,15 +143,14 @@ func (z *zitadelProxyImpl) VerifyTokenWithBackendIdentity(ctx context.Context, a
 		fmt.Printf("%d Error Detail: %s\n", resp.StatusCode, string(bodyBytes))
 		return nil, fmt.Errorf("failed to introspect token, status code: %d", resp.StatusCode)
 	}
-	defer func() {
-		if err := resp.Body.Close(); err != nil {
-			log.Printf("failed to close response body: %v", err)
-		}
-	}()
 
 	var result map[string]interface{}
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 		return nil, err
+	}
+	active, ok := result["active"].(bool)
+	if !ok || !active {
+		return nil, fmt.Errorf("invalid token: token is not active")
 	}
 	sub, ok := result["sub"].(string)
 	if !ok || sub == "" {
@@ -158,7 +167,8 @@ func (z *zitadelProxyImpl) VerifyTokenWithBackendIdentity(ctx context.Context, a
 }
 
 func (z *zitadelProxyImpl) SyncMeta2Zitadel(ctx context.Context, user *model.User) error {
-	apiURL := fmt.Sprintf("%s/v2/users/%s/metadata", config.Config.ZitadelConfig.Host, user.ZitadelSub)
+	escapedSub := url.PathEscape(user.ZitadelSub)
+	apiURL := fmt.Sprintf("%s/v2/users/%s/metadata", config.Config.ZitadelConfig.Host, escapedSub)
 
 	payload, _ := json.Marshal(MetadataRequest{
 		Metadata: []MetadataItem{
@@ -179,18 +189,30 @@ func (z *zitadelProxyImpl) SyncMeta2Zitadel(ctx context.Context, user *model.Use
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
+	defer func() {
+		if resp != nil && resp.Body != nil {
+			if err := resp.Body.Close(); err != nil {
+				log.Logger.Errorf("failed to close response body: %v", err)
+			}
+		}
+	}()
 	if err != nil {
 		return err
 	}
 	if resp.StatusCode != 200 {
 		bodyBytes, _ := io.ReadAll(resp.Body)
-		fmt.Printf("%d Error Detail: %s\n", resp.StatusCode, string(bodyBytes))
+		log.Logger.Errorf("%d Error Detail: %s\n", resp.StatusCode, string(bodyBytes))
 		return fmt.Errorf("failed to sync metadata, status code: %d", resp.StatusCode)
 	}
 	return nil
 }
 
 func (z *zitadelProxyImpl) getActualAccessToken() (string, error) {
+	if z.accessToken != nil && !z.accessToken.IsExpired() {
+		return z.accessToken.AccessToken, nil
+	}
+	z.lock.Lock()
+	defer z.lock.Unlock()
 	if z.accessToken != nil && !z.accessToken.IsExpired() {
 		return z.accessToken.AccessToken, nil
 	}
@@ -204,6 +226,13 @@ func (z *zitadelProxyImpl) getActualAccessToken() (string, error) {
 	data.Set("scope", "openid profile urn:zitadel:iam:org:project:id:zitadel:aud")
 
 	resp, err := http.PostForm(fmt.Sprintf("%s/oauth/v2/token", config.Config.ZitadelConfig.Host), data)
+	defer func() {
+		if resp != nil && resp.Body != nil {
+			if err := resp.Body.Close(); err != nil {
+				log.Logger.Errorf("failed to close response body: %v", err)
+			}
+		}
+	}()
 	if err != nil {
 		return "", err
 	}
@@ -212,11 +241,6 @@ func (z *zitadelProxyImpl) getActualAccessToken() (string, error) {
 		fmt.Printf("Failed to get access token, status code: %d, detail: %s\n", resp.StatusCode, string(bodyBytes))
 		return "", fmt.Errorf("failed to get access token, status code: %d", resp.StatusCode)
 	}
-	defer func() {
-		if err := resp.Body.Close(); err != nil {
-			log.Printf("failed to close response body: %v", err)
-		}
-	}()
 
 	// 2. 解析返回的 Access Token
 	var result ZitadelAccessToken

@@ -41,6 +41,8 @@ services:
       - SMTP_PASSWORD=${SMTP_PASSWORD}
       - SMTP_EMAIL_FROM=${SMTP_EMAIL_FROM}
       - JWT_SECRET=${JWT_SECRET}
+      - ZITADEL_APP_API_KEY={"key":"test-key"}
+      - ZITADEL_SERVICE_API_KEY={"key":"test-key"}
     depends_on:
       mysql-container:
         condition: service_healthy

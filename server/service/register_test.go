@@ -244,3 +244,138 @@ func TestGetRegisterService(t *testing.T) {
 		}
 	})
 }
+
+func TestOAuthLoginCallback(t *testing.T) {
+	initEnv()
+	ctx := context.Background()
+	t.Run("Successful OAuth login callback", func(t *testing.T) {
+		userDao := new(dao_mock.UserDao)
+		zitadelProxy := new(proxy_mock.ZitadelProxy)
+		kafkaProducer := new(mq_mock.KafkaProducer)
+		service := &RegisterImpl{
+			userDao:       userDao,
+			zitadelProxy:  zitadelProxy,
+			kafkaProducer: kafkaProducer,
+		}
+		email := "test@example.com"
+		accessToken := "valid-access-token"
+		user := &model.User{Email: email, Status: model.UserStatusInactive}
+
+		zitadelProxy.On("VerifyTokenWithBackendIdentity", mock.Anything, accessToken).Return(user, nil)
+		zitadelProxy.On("SyncMeta2Zitadel", mock.Anything, mock.Anything).Return(nil)
+		userDao.On("GetUserByEmail", mock.Anything, email).Return(nil, nil)
+		userDao.On("CreateUser", mock.Anything, user).Return(1, nil)
+		userDao.On("UpdateUser", mock.Anything, mock.Anything).Return(nil)
+		kafkaProducer.On("Produce", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
+		err := service.OAuthLoginCallback(ctx, accessToken)
+		assert.NoError(t, err)
+		userDao.AssertCalled(t, "CreateUser", mock.Anything, user)
+		userDao.AssertCalled(t, "UpdateUser", mock.Anything, mock.Anything)
+		kafkaProducer.AssertCalled(t, "Produce", mock.Anything, mock.Anything, mock.Anything, mock.Anything)
+		zitadelProxy.AssertCalled(t, "SyncMeta2Zitadel", mock.Anything, mock.Anything)
+	})
+
+	t.Run("User already exists and active", func(t *testing.T) {
+		userDao := new(dao_mock.UserDao)
+		zitadelProxy := new(proxy_mock.ZitadelProxy)
+		service := &RegisterImpl{
+			userDao:      userDao,
+			zitadelProxy: zitadelProxy,
+		}
+		email := "test@example.com"
+		accessToken := "valid-access-token"
+		dbUser := &model.User{Email: email, Status: model.UserStatusActive}
+
+		zitadelProxy.On("VerifyTokenWithBackendIdentity", mock.Anything, accessToken).Return(&model.User{Email: email}, nil)
+		userDao.On("GetUserByEmail", mock.Anything, email).Return(dbUser, nil)
+		err := service.OAuthLoginCallback(ctx, accessToken)
+		assert.NoError(t, err)
+		userDao.AssertNotCalled(t, "CreateUser", mock.Anything, mock.Anything)
+	})
+
+	t.Run("Failed to verify token", func(t *testing.T) {
+		zitadelProxy := new(proxy_mock.ZitadelProxy)
+		service := &RegisterImpl{
+			zitadelProxy: zitadelProxy,
+		}
+		accessToken := "invalid-access-token"
+
+		zitadelProxy.On("VerifyTokenWithBackendIdentity", mock.Anything, accessToken).Return(nil, assert.AnError)
+		err := service.OAuthLoginCallback(ctx, accessToken)
+		assert.Error(t, err)
+	})
+
+	t.Run("Failed to get user by email", func(t *testing.T) {
+		userDao := new(dao_mock.UserDao)
+		zitadelProxy := new(proxy_mock.ZitadelProxy)
+		service := &RegisterImpl{
+			userDao:      userDao,
+			zitadelProxy: zitadelProxy,
+		}
+		email := "test@example.com"
+		accessToken := "valid-access-token"
+		user := &model.User{Email: email}
+
+		zitadelProxy.On("VerifyTokenWithBackendIdentity", mock.Anything, accessToken).Return(user, nil)
+		userDao.On("GetUserByEmail", mock.Anything, email).Return(nil, assert.AnError)
+		err := service.OAuthLoginCallback(ctx, accessToken)
+		assert.Error(t, err)
+	})
+
+	t.Run("Failed to create user", func(t *testing.T) {
+		userDao := new(dao_mock.UserDao)
+		zitadelProxy := new(proxy_mock.ZitadelProxy)
+		service := &RegisterImpl{
+			userDao:      userDao,
+			zitadelProxy: zitadelProxy,
+		}
+		email := "test@example.com"
+		accessToken := "valid-access-token"
+		user := &model.User{Email: email, Status: model.UserStatusInactive}
+
+		zitadelProxy.On("VerifyTokenWithBackendIdentity", mock.Anything, accessToken).Return(user, nil)
+		userDao.On("GetUserByEmail", mock.Anything, email).Return(nil, nil)
+		userDao.On("CreateUser", mock.Anything, user).Return(-1, assert.AnError)
+		err := service.OAuthLoginCallback(ctx, accessToken)
+		assert.Error(t, err)
+	})
+
+	t.Run("Failed to sync meta to Zitadel", func(t *testing.T) {
+		userDao := new(dao_mock.UserDao)
+		zitadelProxy := new(proxy_mock.ZitadelProxy)
+		service := &RegisterImpl{
+			userDao:      userDao,
+			zitadelProxy: zitadelProxy,
+		}
+		email := "test@example.com"
+		accessToken := "valid-access-token"
+		user := &model.User{Email: email, Status: model.UserStatusInactive}
+
+		zitadelProxy.On("VerifyTokenWithBackendIdentity", mock.Anything, accessToken).Return(user, nil)
+		zitadelProxy.On("SyncMeta2Zitadel", mock.Anything, mock.Anything).Return(assert.AnError)
+		userDao.On("GetUserByEmail", mock.Anything, email).Return(user, nil)
+		err := service.OAuthLoginCallback(ctx, accessToken)
+		assert.Error(t, err)
+	})
+
+	t.Run("Failed to produce Kafka message", func(t *testing.T) {
+		userDao := new(dao_mock.UserDao)
+		zitadelProxy := new(proxy_mock.ZitadelProxy)
+		kafkaProducer := new(mq_mock.KafkaProducer)
+		service := &RegisterImpl{
+			userDao:       userDao,
+			zitadelProxy:  zitadelProxy,
+			kafkaProducer: kafkaProducer,
+		}
+		email := "test@example.com"
+		accessToken := "valid-access-token"
+		user := &model.User{Email: email, Status: model.UserStatusInactive}
+
+		zitadelProxy.On("VerifyTokenWithBackendIdentity", mock.Anything, accessToken).Return(user, nil)
+		zitadelProxy.On("SyncMeta2Zitadel", mock.Anything, mock.Anything).Return(nil)
+		userDao.On("GetUserByEmail", mock.Anything, email).Return(user, nil)
+		kafkaProducer.On("Produce", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(assert.AnError)
+		err := service.OAuthLoginCallback(ctx, accessToken)
+		assert.Error(t, err)
+	})
+}

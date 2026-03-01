@@ -61,6 +61,7 @@ func (rs *RegisterImpl) OAuthLoginCallback(ctx context.Context, accessToken stri
 	user, err := rs.zitadelProxy.VerifyTokenWithBackendIdentity(ctx, accessToken)
 	if err != nil {
 		log.Logger.Errorf("Failed to verify token with Zitadel: %v", err)
+		return err
 	}
 	dbUser, err := rs.userDao.GetUserByEmail(ctx, user.Email)
 	if err != nil {
@@ -87,7 +88,7 @@ func (rs *RegisterImpl) OAuthLoginCallback(ctx context.Context, accessToken stri
 
 	err = rs.syncLocalUserId2Zitadel(ctx, user)
 	if err != nil {
-		log.Logger.Errorf("Failed to produce user activated event: %v", err)
+		log.Logger.Errorf("Failed to sync Zitadel: userId:%d\t%v", user.ID, err)
 		return err
 	}
 	log.Logger.Infof("Local userId sync to zitadel done.\tuserId: %d\tsub=%s", user.ID, user.ZitadelSub)
