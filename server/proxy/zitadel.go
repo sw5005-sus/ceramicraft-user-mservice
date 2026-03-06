@@ -10,11 +10,13 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/lestrrat-go/jwx/v2/jwk"
 	"github.com/sw5005-sus/ceramicraft-user-mservice/server/config"
 	"github.com/sw5005-sus/ceramicraft-user-mservice/server/log"
 	"github.com/sw5005-sus/ceramicraft-user-mservice/server/repository/model"
@@ -22,6 +24,7 @@ import (
 
 //go:generate mockery --name ZitadelProxy --output ./mocks --case underscore
 type ZitadelProxy interface {
+	ValidateToken(ctx context.Context, tokenStr string) (*AuthUser, error)
 	VerifyTokenWithBackendIdentity(ctx context.Context, accessToken string) (*model.User, error)
 	SyncMeta2Zitadel(ctx context.Context, user *model.User) error
 }
@@ -31,6 +34,7 @@ type zitadelProxyImpl struct {
 	mngKey      *ZitadelServiceKey
 	accessToken *ZitadelAccessToken
 	lock        sync.Mutex
+	keySet      jwk.Set
 }
 
 var (
@@ -46,6 +50,10 @@ func InitZitadel() {
 	}
 	if zitadelProxyInstance.apiKey == nil || zitadelProxyInstance.mngKey == nil {
 		panic("failed to load ZITADEL keys from environment variables")
+	}
+	err = zitadelProxyInstance.InitJWKS(context.Background())
+	if err != nil {
+		panic(fmt.Errorf("failed to initialize JWKS: %v", err))
 	}
 }
 
@@ -87,6 +95,89 @@ type ZitadelAccessToken struct {
 
 func (t *ZitadelAccessToken) IsExpired() bool {
 	return time.Now().Unix() >= t.ExpiresAt
+}
+
+type MyCustomClaims struct {
+	jwt.RegisteredClaims
+	Metadata map[string]string `json:"urn:zitadel:iam:user:metadata"`
+}
+
+func (t *MyCustomClaims) Valid(zitalConfig *config.ZitadelConfig) error {
+	if t.Issuer != config.Config.ZitadelConfig.Host {
+		return fmt.Errorf("invalid token: issuer mismatch")
+	}
+	foundAudience := false
+	for _, aud := range t.Audience {
+		if aud == config.Config.ZitadelConfig.ClientId {
+			foundAudience = true
+			break
+		}
+	}
+
+	if !foundAudience {
+		return fmt.Errorf("audience mismatch: expected %s", config.Config.ZitadelConfig.ClientId)
+	}
+	return nil
+}
+
+func (t *MyCustomClaims) getLocalUserId() int {
+	if rawID, ok := t.Metadata["local_userid"]; ok {
+		decoded, err := base64.RawStdEncoding.DecodeString(rawID)
+		if err != nil {
+			log.Logger.Errorf("failed to decode local_userid from token metadata: %v", err)
+			return 0
+		}
+		localID := string(decoded)
+		localIdInt, err := strconv.Atoi(localID)
+		if err != nil {
+			log.Logger.Errorf("failed to parse local_userid from token metadata: %v", err)
+			return 0
+		}
+		return localIdInt
+	}
+	log.Logger.Errorf("local_userid not found in token metadata")
+	return 0
+}
+
+type AuthUser struct {
+	Sub         string `json:"sub"`
+	LocalUserId int    `json:"local_userid"`
+}
+
+func (z *zitadelProxyImpl) InitJWKS(ctx context.Context) error {
+	var err error
+	keySet, err := jwk.Fetch(ctx, config.Config.ZitadelConfig.Host+"/oauth/v2/keys")
+	if err != nil {
+		return err
+	}
+	z.keySet = keySet
+	return nil
+}
+
+func (z *zitadelProxyImpl) ValidateToken(ctx context.Context, tokenStr string) (*AuthUser, error) {
+	if tokenStr == "" {
+		return nil, fmt.Errorf("token is empty")
+	}
+	claims := &MyCustomClaims{}
+	// 校验 JWT
+	token, err := jwt.ParseWithClaims(tokenStr, claims, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
+			return nil, fmt.Errorf("unexpected signing method")
+		}
+		kid, _ := token.Header["kid"].(string)
+		key, _ := z.keySet.LookupKeyID(kid)
+		var rawKey interface{}
+		err := key.Raw(&rawKey)
+		return rawKey, err
+	})
+
+	if err != nil || !token.Valid {
+		return nil, fmt.Errorf("invalid token: %w", err)
+	}
+	if err = claims.Valid(config.Config.ZitadelConfig); err != nil {
+		return nil, fmt.Errorf("invalid token claims: %w", err)
+	}
+	return &AuthUser{Sub: claims.Subject, LocalUserId: claims.getLocalUserId()}, nil
 }
 
 func (z *zitadelProxyImpl) loadKey() error {

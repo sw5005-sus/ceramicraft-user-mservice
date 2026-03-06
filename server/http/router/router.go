@@ -27,6 +27,9 @@ func NewRouter() *gin.Engine {
 		}
 	}
 
+	// called by API Gateway to validate token for each request
+	r.Any("/oauth/v1/verify", api.OAuthTokenValidate)
+
 	basicGroup := r.Group(serviceURIPrefix)
 	{
 		basicGroup.GET("/swagger/*any", gs.WrapHandler(

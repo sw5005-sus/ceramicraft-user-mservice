@@ -15,6 +15,35 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/oauth/v1/verify": {
+            "get": {
+                "description": "This endpoint validates the provided JWT token and returns user information if the token is valid.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Validate OAuth Token",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Insert your access token with 'Bearer ' prefix",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
         "/user-ms/v1/customer/oauth-callback": {
             "post": {
                 "description": "This endpoint allows a new user to register by Zitadel access_token.",
