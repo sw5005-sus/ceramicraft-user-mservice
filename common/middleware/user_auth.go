@@ -43,7 +43,7 @@ func getUserIDFromHeader(c *gin.Context) (int, error) {
 	}
 	userId, err := strconv.Atoi(userIdStr)
 	if err != nil || userId <= 0 {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid user ID in header"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid user ID in header"})
 		return -1, err
 	}
 	return userId, nil
@@ -52,16 +52,16 @@ func getUserIDFromHeader(c *gin.Context) (int, error) {
 func getUserIDFromCookie(c *gin.Context) (int, error) {
 	authCookie, err := c.Cookie("auth-token")
 	if err != nil {
-		return -1, fmt.Errorf("Auth token cookie is required")
+		return -1, fmt.Errorf("auth token cookie is required")
 	}
 
 	if authCookie == "" {
-		return -1, fmt.Errorf("Authorization is required")
+		return -1, fmt.Errorf("authorization is required")
 	}
 	ret, err := utils.ValidateJWTToken(authCookie)
 
 	if err != nil || ret <= 0 {
-		return -1, fmt.Errorf("Invalid or expired token")
+		return -1, fmt.Errorf("invalid or expired token")
 	}
 	return ret, nil
 }

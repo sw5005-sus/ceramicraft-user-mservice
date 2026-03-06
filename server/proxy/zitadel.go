@@ -16,7 +16,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/lestrrat-go/jwx/v2/jwk"
+	"github.com/lestrrat-go/jwx/v3/jwk"
 	"github.com/sw5005-sus/ceramicraft-user-mservice/server/config"
 	"github.com/sw5005-sus/ceramicraft-user-mservice/server/log"
 	"github.com/sw5005-sus/ceramicraft-user-mservice/server/repository/model"
@@ -166,8 +166,9 @@ func (z *zitadelProxyImpl) ValidateToken(ctx context.Context, tokenStr string) (
 		}
 		kid, _ := token.Header["kid"].(string)
 		key, _ := z.keySet.LookupKeyID(kid)
+
 		var rawKey interface{}
-		err := key.Raw(&rawKey)
+		err := jwk.Export(key, &rawKey)
 		return rawKey, err
 	})
 
