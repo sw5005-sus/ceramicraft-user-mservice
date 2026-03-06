@@ -3,10 +3,10 @@ module github.com/sw5005-sus/ceramicraft-user-mservice/server
 go 1.25.7
 
 require (
+	github.com/MicahParks/keyfunc/v3 v3.8.0
 	github.com/gin-gonic/gin v1.11.0
 	github.com/go-playground/validator/v10 v10.27.0
 	github.com/joho/godotenv v1.5.1
-	github.com/lestrrat-go/jwx/v3 v3.0.13
 	github.com/spf13/viper v1.21.0
 	github.com/stretchr/testify v1.11.1
 	github.com/swaggo/files v1.0.1
@@ -22,16 +22,12 @@ require (
 )
 
 require (
-	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.4.0 // indirect
+	github.com/MicahParks/jwkset v0.11.0 // indirect
 	github.com/klauspost/compress v1.15.9 // indirect
-	github.com/lestrrat-go/blackmagic v1.0.4 // indirect
-	github.com/lestrrat-go/httpcc v1.0.1 // indirect
-	github.com/lestrrat-go/httprc/v3 v3.0.2 // indirect
-	github.com/lestrrat-go/option/v2 v2.0.0 // indirect
 	github.com/pierrec/lz4/v4 v4.1.15 // indirect
 	github.com/quic-go/quic-go v0.57.0 // indirect
 	github.com/rogpeppe/go-internal v1.14.1 // indirect
-	github.com/segmentio/asm v1.2.1 // indirect
+	golang.org/x/time v0.12.0 // indirect
 )
 
 require (

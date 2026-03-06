@@ -15,8 +15,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/MicahParks/keyfunc/v3"
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/lestrrat-go/jwx/v3/jwk"
 	"github.com/sw5005-sus/ceramicraft-user-mservice/server/config"
 	"github.com/sw5005-sus/ceramicraft-user-mservice/server/log"
 	"github.com/sw5005-sus/ceramicraft-user-mservice/server/repository/model"
@@ -34,7 +34,7 @@ type zitadelProxyImpl struct {
 	mngKey      *ZitadelServiceKey
 	accessToken *ZitadelAccessToken
 	lock        sync.Mutex
-	keySet      jwk.Set
+	kf          keyfunc.Keyfunc
 }
 
 var (
@@ -145,12 +145,11 @@ type AuthUser struct {
 }
 
 func (z *zitadelProxyImpl) InitJWKS(ctx context.Context) error {
-	var err error
-	keySet, err := jwk.Fetch(ctx, config.Config.ZitadelConfig.Host+"/oauth/v2/keys")
+	k, err := keyfunc.NewDefault([]string{config.Config.ZitadelConfig.Host + "/oauth/v2/keys"})
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to create JWKS: %v", err)
 	}
-	z.keySet = keySet
+	z.kf = k
 	return nil
 }
 
@@ -159,17 +158,8 @@ func (z *zitadelProxyImpl) ValidateToken(ctx context.Context, tokenStr string) (
 		return nil, fmt.Errorf("token is empty")
 	}
 	claims := &MyCustomClaims{}
-	// 校验 JWT
 	token, err := jwt.ParseWithClaims(tokenStr, claims, func(token *jwt.Token) (interface{}, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
-			return nil, fmt.Errorf("unexpected signing method")
-		}
-		kid, _ := token.Header["kid"].(string)
-		key, _ := z.keySet.LookupKeyID(kid)
-
-		var rawKey interface{}
-		err := jwk.Export(key, &rawKey)
-		return rawKey, err
+		return z.kf.Keyfunc(token)
 	})
 
 	if err != nil || !token.Valid {
