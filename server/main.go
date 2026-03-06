@@ -7,6 +7,7 @@ import (
 	"runtime/debug"
 	"syscall"
 
+	ceramicraftsecure "github.com/sw5005-sus/ceramicraft-secure"
 	"github.com/sw5005-sus/ceramicraft-user-mservice/common/utils"
 	"github.com/sw5005-sus/ceramicraft-user-mservice/server/config"
 	"github.com/sw5005-sus/ceramicraft-user-mservice/server/grpc"
@@ -28,6 +29,8 @@ func main() {
 	log.Logger.Info("Logger initialized.")
 	utils.InitJwtSecret()
 	log.Logger.Info("JWT secret initialized.")
+	ceramicraftsecure.Init()
+	log.Logger.Info("Ceramicraft secure initialized.")
 	repository.Init()
 	log.Logger.Info("Database initialized.")
 	mq.InitKafka()

@@ -51,7 +51,9 @@ func InitZitadel() {
 	if zitadelProxyInstance.apiKey == nil || zitadelProxyInstance.mngKey == nil {
 		panic("failed to load ZITADEL keys from environment variables")
 	}
-	err = zitadelProxyInstance.InitJWKS(context.Background())
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+	err = zitadelProxyInstance.InitJWKS(ctx)
 	if err != nil {
 		panic(fmt.Errorf("failed to initialize JWKS: %v", err))
 	}
@@ -103,6 +105,9 @@ type MyCustomClaims struct {
 }
 
 func (t *MyCustomClaims) Valid(zitalConfig *config.ZitadelConfig) error {
+	if zitalConfig == nil {
+		return fmt.Errorf("invalid token: zitadel config is nil")
+	}
 	if t.Issuer != config.Config.ZitadelConfig.Host {
 		return fmt.Errorf("invalid token: issuer mismatch")
 	}

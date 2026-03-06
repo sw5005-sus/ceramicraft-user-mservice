@@ -2,8 +2,12 @@ package api
 
 import (
 	"fmt"
+	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
+	ceramicraftsecure "github.com/sw5005-sus/ceramicraft-secure"
+	"github.com/sw5005-sus/ceramicraft-user-mservice/common/bo"
 	"github.com/sw5005-sus/ceramicraft-user-mservice/server/log"
 	"github.com/sw5005-sus/ceramicraft-user-mservice/server/proxy"
 )
@@ -11,7 +15,7 @@ import (
 // OAuthTokenValidate validates jwt_token.
 //
 // @Summary Validate OAuth Token
-// @Description This endpoint validates the provided JWT token and returns user information if the token is valid.
+// @Description This endpoint validates the provided JWT token. If the token is valid, it sets response headers.
 // @Tags Authentication
 // @Accept json
 // @Produce json
@@ -31,5 +35,19 @@ func OAuthTokenValidate(c *gin.Context) {
 		return
 	}
 
-	c.Writer.Header().Set("X-Original-User-ID", fmt.Sprint(authUser.LocalUserId))
+	setHeaders(c, authUser.LocalUserId)
+
+	c.Status(http.StatusOK)
+}
+
+func setHeaders(c *gin.Context, userId int) {
+	timetamp := fmt.Sprint(time.Now().Unix())
+	sign, err := ceramicraftsecure.GenHmacSha256(fmt.Sprintf("%d:%s", userId, timetamp))
+	if err != nil {
+		log.Logger.Errorf("failed to generate signature: %v", err)
+		return
+	}
+	c.Writer.Header().Set(bo.OAuthHeaderUserId, fmt.Sprint(userId))
+	c.Writer.Header().Set(bo.OAuthHeaderTimestamp, timetamp)
+	c.Writer.Header().Set(bo.OAuthHeaderSign, sign)
 }
