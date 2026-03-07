@@ -1,7 +1,9 @@
 package bo
 
 const (
-	OAuthHeaderUserId = "X-Original-User-ID"
+	OAuthHeaderUserId  = "X-Original-User-ID"
+	ZitadelRoleKey     = "urn:zitadel:iam:org:project:%s:roles"
+	ZitadelMetaDataKey = "urn:zitadel:iam:user:metadata"
 )
 
 type UserBO struct {

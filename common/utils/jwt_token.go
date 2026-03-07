@@ -6,6 +6,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/sw5005-sus/ceramicraft-user-mservice/common/bo"
 )
@@ -73,6 +74,14 @@ func ValidateJWTToken(token string) (int, error) {
 	}
 
 	return -1, errors.New("invalid token")
+}
+
+func GetTokenFromHeader(c *gin.Context) (string, error) {
+	authHeader := c.GetHeader("Authorization")
+	if authHeader == "" || len(authHeader) <= 7 || authHeader[:7] != "Bearer " {
+		return "", fmt.Errorf("no auth header found")
+	}
+	return authHeader[7:], nil
 }
 
 func ParseToken(token string) (jwt.MapClaims, error) {
