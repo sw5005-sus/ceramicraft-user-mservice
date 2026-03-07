@@ -76,6 +76,26 @@ definitions:
 info:
   contact: {}
 paths:
+  /oauth/v1/verify:
+    get:
+      consumes:
+      - application/json
+      description: This endpoint validates the provided JWT token and returns user
+        information if the token is valid.
+      parameters:
+      - description: Insert your access token with 'Bearer ' prefix
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      summary: Validate OAuth Token
+      tags:
+      - Authentication
   /user-ms/v1/{client}/login:
     post:
       consumes:

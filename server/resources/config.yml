@@ -32,3 +32,4 @@ kafka:
 
 zitadel:
   host: "https://cerami-t6ihrd.us1.zitadel.cloud"
+  client_id: "361761429302373082"

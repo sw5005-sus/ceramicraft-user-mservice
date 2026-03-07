@@ -6,6 +6,7 @@ import (
 	context "context"
 
 	mock "github.com/stretchr/testify/mock"
+	proxy "github.com/sw5005-sus/ceramicraft-user-mservice/server/proxy"
 	model "github.com/sw5005-sus/ceramicraft-user-mservice/server/repository/model"
 )
 
@@ -30,6 +31,36 @@ func (_m *ZitadelProxy) SyncMeta2Zitadel(ctx context.Context, user *model.User) 
 	}
 
 	return r0
+}
+
+// ValidateToken provides a mock function with given fields: ctx, tokenStr
+func (_m *ZitadelProxy) ValidateToken(ctx context.Context, tokenStr string) (*proxy.AuthUser, error) {
+	ret := _m.Called(ctx, tokenStr)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ValidateToken")
+	}
+
+	var r0 *proxy.AuthUser
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (*proxy.AuthUser, error)); ok {
+		return rf(ctx, tokenStr)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) *proxy.AuthUser); ok {
+		r0 = rf(ctx, tokenStr)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*proxy.AuthUser)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, tokenStr)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // VerifyTokenWithBackendIdentity provides a mock function with given fields: ctx, accessToken

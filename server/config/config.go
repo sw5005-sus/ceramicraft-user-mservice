@@ -62,7 +62,8 @@ type KafkaConfig struct {
 }
 
 type ZitadelConfig struct {
-	Host string `mapstructure:"host"`
+	Host     string `mapstructure:"host"`
+	ClientId string `mapstructure:"client_id"`
 }
 
 func Init() {
