@@ -4,10 +4,8 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-	"time"
 
 	"github.com/gin-gonic/gin"
-	ceramicraftsecure "github.com/sw5005-sus/ceramicraft-secure"
 	"github.com/sw5005-sus/ceramicraft-user-mservice/common/bo"
 	"github.com/sw5005-sus/ceramicraft-user-mservice/common/utils"
 )
@@ -44,26 +42,11 @@ func getUserIDFromHeader(c *gin.Context) (int, error) {
 	if userIdStr == "" {
 		return 0, nil
 	}
-	if !validateSign(userIdStr, c.GetHeader(bo.OAuthHeaderTimestamp), c.GetHeader(bo.OAuthHeaderSign)) {
-		return -1, fmt.Errorf("invalid signature")
-	}
 	userId, err := strconv.Atoi(userIdStr)
 	if err != nil || userId <= 0 {
 		return -1, err
 	}
 	return userId, nil
-}
-
-func validateSign(userId, timestamp, sign string) bool {
-	ts, err := strconv.ParseInt(timestamp, 10, 64)
-	if err != nil || time.Now().Unix()-ts > 60 { // 60 seconds time window
-		return false
-	}
-	ret, err := ceramicraftsecure.VerifyHmacSha256(fmt.Sprintf("%s:%s", userId, timestamp), sign)
-	if err != nil {
-		return false
-	}
-	return ret
 }
 
 func getUserIDFromCookie(c *gin.Context) (int, error) {

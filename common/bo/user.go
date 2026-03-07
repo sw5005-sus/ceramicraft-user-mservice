@@ -1,9 +1,7 @@
 package bo
 
 const (
-	OAuthHeaderUserId    = "X-Original-User-ID"
-	OAuthHeaderTimestamp = "X-Original-Timestamp"
-	OAuthHeaderSign      = "X-Original-Sign"
+	OAuthHeaderUserId = "X-Original-User-ID"
 )
 
 type UserBO struct {
