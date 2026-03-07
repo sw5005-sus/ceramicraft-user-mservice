@@ -3,10 +3,8 @@ package api
 import (
 	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/gin-gonic/gin"
-	ceramicraftsecure "github.com/sw5005-sus/ceramicraft-secure"
 	"github.com/sw5005-sus/ceramicraft-user-mservice/common/bo"
 	"github.com/sw5005-sus/ceramicraft-user-mservice/server/log"
 	"github.com/sw5005-sus/ceramicraft-user-mservice/server/proxy"
@@ -41,13 +39,5 @@ func OAuthTokenValidate(c *gin.Context) {
 }
 
 func setHeaders(c *gin.Context, userId int) {
-	timetamp := fmt.Sprint(time.Now().Unix())
-	sign, err := ceramicraftsecure.GenHmacSha256(fmt.Sprintf("%d:%s", userId, timetamp))
-	if err != nil {
-		log.Logger.Errorf("failed to generate signature: %v", err)
-		return
-	}
 	c.Writer.Header().Set(bo.OAuthHeaderUserId, fmt.Sprint(userId))
-	c.Writer.Header().Set(bo.OAuthHeaderTimestamp, timetamp)
-	c.Writer.Header().Set(bo.OAuthHeaderSign, sign)
 }

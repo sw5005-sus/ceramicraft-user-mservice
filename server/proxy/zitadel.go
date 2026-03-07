@@ -51,9 +51,7 @@ func InitZitadel() {
 	if zitadelProxyInstance.apiKey == nil || zitadelProxyInstance.mngKey == nil {
 		panic("failed to load ZITADEL keys from environment variables")
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-	defer cancel()
-	err = zitadelProxyInstance.InitJWKS(ctx)
+	err = zitadelProxyInstance.initJWKS(context.Background())
 	if err != nil {
 		panic(fmt.Errorf("failed to initialize JWKS: %v", err))
 	}
@@ -149,8 +147,10 @@ type AuthUser struct {
 	LocalUserId int    `json:"local_userid"`
 }
 
-func (z *zitadelProxyImpl) InitJWKS(ctx context.Context) error {
-	k, err := keyfunc.NewDefault([]string{config.Config.ZitadelConfig.Host + "/oauth/v2/keys"})
+func (z *zitadelProxyImpl) initJWKS(ctx context.Context) error {
+	timeoutCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+	k, err := keyfunc.NewDefaultCtx(timeoutCtx, []string{config.Config.ZitadelConfig.Host + "/oauth/v2/keys"})
 	if err != nil {
 		return fmt.Errorf("failed to create JWKS: %v", err)
 	}

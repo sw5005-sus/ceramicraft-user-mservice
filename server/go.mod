@@ -10,6 +10,7 @@ require (
 	github.com/spf13/viper v1.21.0
 	github.com/stretchr/testify v1.11.1
 	github.com/sw5005-sus/ceramicraft-secure v0.0.2
+	github.com/sw5005-sus/ceramicraft-user-mservice/common v0.0.10
 	github.com/swaggo/files v1.0.1
 	github.com/swaggo/gin-swagger v1.6.1
 	github.com/swaggo/swag v1.16.6
@@ -43,7 +44,6 @@ require (
 	github.com/quic-go/quic-go v0.57.0 // indirect
 	github.com/rogpeppe/go-internal v1.14.1 // indirect
 	github.com/ryanuber/go-glob v1.0.0 // indirect
-	github.com/sw5005-sus/ceramicraft-user-mservice/common v0.0.9 // indirect
 	go.uber.org/mock v0.6.0 // indirect
 	golang.org/x/time v0.12.0 // indirect
 )
