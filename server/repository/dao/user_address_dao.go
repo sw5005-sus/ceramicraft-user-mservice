@@ -43,10 +43,17 @@ func (dao *UserAddressDaoImpl) GetUserAddresses(ctx context.Context, userID int)
 		log.Logger.Errorf("Failed to get user addresses: %v", ret.Error)
 		return nil, ret.Error
 	}
+	for _, address := range addresses {
+		_ = address.Decrypt()
+	}
 	return addresses, nil
 }
 
 func (dao *UserAddressDaoImpl) CreateUserAddress(ctx context.Context, address *model.UserAddress) (int, error) {
+	err := address.Encrypt()
+	if err != nil {
+		return 0, err
+	}
 	ret := dao.db.WithContext(ctx).Create(address)
 	if ret.Error != nil {
 		log.Logger.Errorf("Failed to create user address: %v", ret.Error)
@@ -57,6 +64,10 @@ func (dao *UserAddressDaoImpl) CreateUserAddress(ctx context.Context, address *m
 }
 
 func (dao *UserAddressDaoImpl) UpdateUserAddress(ctx context.Context, address *model.UserAddress) (int, error) {
+	err := address.Encrypt()
+	if err != nil {
+		return 0, err
+	}
 	ret := dao.db.WithContext(ctx).Model(&model.UserAddress{}).
 		Where("id = ? and user_id=?", address.ID, address.UserID).
 		Updates(address)
@@ -79,5 +90,6 @@ func (dao *UserAddressDaoImpl) GetDefaultAddress(ctx context.Context, userID int
 		log.Logger.Errorf("Failed to get default user address: %v", ret.Error)
 		return nil, ret.Error
 	}
+	_ = address.Decrypt()
 	return &address, nil
 }
