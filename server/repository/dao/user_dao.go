@@ -43,7 +43,7 @@ func (dao *UserDaoImpl) CreateUser(ctx context.Context, user *model.User) (int, 
 	if err != nil {
 		return 0, err
 	}
-	ret := dao.db.WithContext(ctx).Save(&user)
+	ret := dao.db.WithContext(ctx).Save(user)
 	if ret.Error != nil {
 		if errors.Is(ret.Error, gorm.ErrDuplicatedKey) {
 			return 0, errors.New("user already exists")
@@ -96,7 +96,10 @@ func (dao *UserDaoImpl) GetUserByEmail(ctx context.Context, email string) (*mode
 		log.Logger.Errorf("Failed to get user by email: %v", ret.Error)
 		return nil, ret.Error
 	}
-	_ = user.Decrpt()
+	if err := user.Decrypt(); err != nil {
+		log.Logger.Errorf("Failed to decrypt user data (email=%s): %v", email, err)
+		return nil, err
+	}
 	return &user, nil
 }
 
@@ -110,6 +113,9 @@ func (dao *UserDaoImpl) GetUserById(ctx context.Context, id int) (*model.User, e
 		log.Logger.Errorf("Failed to get user by id: %v", ret.Error)
 		return nil, ret.Error
 	}
-	_ = user.Decrpt()
+	if err := user.Decrypt(); err != nil {
+		log.Logger.Errorf("Failed to decrypt user data: %v", err)
+		return nil, err
+	}
 	return &user, nil
 }

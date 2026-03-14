@@ -14,7 +14,7 @@ type UserAddress struct {
 	Country         string       `gorm:"type:varchar(64);not null"`
 	Province        string       `gorm:"type:varchar(64);not null"`
 	City            string       `gorm:"type:varchar(64);not null"`
-	Detail          string       `gorm:"type:varchar(255);not null"`
+	Detail          string       `gorm:"type:varchar(1024);not null"`
 	FirstName       string       `gorm:"type:varchar(64);not null"`
 	LastName        string       `gorm:"type:varchar(64);not null"`
 	ContactPhone    string       `gorm:"type:varchar(128);not null"`

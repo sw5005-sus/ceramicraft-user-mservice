@@ -13,8 +13,8 @@ const (
 
 type User struct {
 	ID           int        `gorm:"primaryKey"`
-	Email        string     `gorm:"type:varchar(128);unique;not null"`
-	EmailHash    string     `gorm:"type:varchar(128);unique;not null"`
+	Email        string     `gorm:"type:varchar(512);unique;not null"`
+	EmailHash    string     `gorm:"type:varchar(128);uniqueIndex"`
 	ZitadelSub   string     `gorm:"type:varchar(128);default:''"`
 	Password     string     `gorm:"type:varchar(255);not null"`
 	Status       int        `gorm:"type:int;not null"`
@@ -49,7 +49,7 @@ func (u *User) EncryptAndSetHash() error {
 	return nil
 }
 
-func (u *User) Decrpt() error {
+func (u *User) Decrypt() error {
 	if u.EmailHash == "" {
 		return nil
 	}
@@ -61,8 +61,8 @@ func (u *User) Decrpt() error {
 	return nil
 }
 
-func GetEmailHash(plainEmial string) (string, error) {
-	hashRet, err := ceramicraftsecure.GenHmacSha256(plainEmial)
+func GetEmailHash(plainEmail string) (string, error) {
+	hashRet, err := ceramicraftsecure.GenHmacSha256(plainEmail)
 	if err != nil {
 		return "", err
 	}

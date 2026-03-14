@@ -44,7 +44,10 @@ func (dao *UserAddressDaoImpl) GetUserAddresses(ctx context.Context, userID int)
 		return nil, ret.Error
 	}
 	for _, address := range addresses {
-		_ = address.Decrypt()
+		if err := address.Decrypt(); err != nil {
+			log.Logger.Errorf("Failed to decrypt user address ID %d: %v", address.ID, err)
+			return nil, err
+		}
 	}
 	return addresses, nil
 }
