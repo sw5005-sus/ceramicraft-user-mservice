@@ -52,6 +52,7 @@ func (dao *UserDaoImpl) CreateUser(ctx context.Context, user *model.User) (int, 
 		return 0, ret.Error
 	}
 	log.Logger.Infof("User created with ID: %d", user.ID)
+	_ = user.Decrypt() //recover
 	return user.ID, nil
 }
 
@@ -65,6 +66,7 @@ func (dao *UserDaoImpl) UpdateUserInTransaction(ctx context.Context, user *model
 		log.Logger.Errorf("Failed to update user: %v", ret.Error)
 		return ret.Error
 	}
+	_ = user.Decrypt() //recover
 	return nil
 }
 
@@ -78,6 +80,7 @@ func (dao *UserDaoImpl) UpdateUser(ctx context.Context, user *model.User) error 
 		log.Logger.Errorf("Failed to update user: %v", ret.Error)
 		return ret.Error
 	}
+	_ = user.Decrypt() //recover
 	return nil
 }
 

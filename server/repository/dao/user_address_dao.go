@@ -63,6 +63,7 @@ func (dao *UserAddressDaoImpl) CreateUserAddress(ctx context.Context, address *m
 		return 0, ret.Error
 	}
 	log.Logger.Infof("User address created with ID: %d", address.ID)
+	_ = address.Decrypt() //recover
 	return address.ID, nil
 }
 
@@ -79,7 +80,7 @@ func (dao *UserAddressDaoImpl) UpdateUserAddress(ctx context.Context, address *m
 		return 0, ret.Error
 	}
 	log.Logger.Infof("User address updated with ID: %d", address.ID)
-
+	_ = address.Decrypt() //recover
 	return int(ret.RowsAffected), ret.Error
 }
 
