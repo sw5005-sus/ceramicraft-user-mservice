@@ -43,20 +43,35 @@ func (dao *UserAddressDaoImpl) GetUserAddresses(ctx context.Context, userID int)
 		log.Logger.Errorf("Failed to get user addresses: %v", ret.Error)
 		return nil, ret.Error
 	}
+	for _, address := range addresses {
+		if err := address.Decrypt(); err != nil {
+			log.Logger.Errorf("Failed to decrypt user address ID %d: %v", address.ID, err)
+			return nil, err
+		}
+	}
 	return addresses, nil
 }
 
 func (dao *UserAddressDaoImpl) CreateUserAddress(ctx context.Context, address *model.UserAddress) (int, error) {
+	err := address.Encrypt()
+	if err != nil {
+		return 0, err
+	}
 	ret := dao.db.WithContext(ctx).Create(address)
 	if ret.Error != nil {
 		log.Logger.Errorf("Failed to create user address: %v", ret.Error)
 		return 0, ret.Error
 	}
 	log.Logger.Infof("User address created with ID: %d", address.ID)
+	_ = address.Decrypt() //recover
 	return address.ID, nil
 }
 
 func (dao *UserAddressDaoImpl) UpdateUserAddress(ctx context.Context, address *model.UserAddress) (int, error) {
+	err := address.Encrypt()
+	if err != nil {
+		return 0, err
+	}
 	ret := dao.db.WithContext(ctx).Model(&model.UserAddress{}).
 		Where("id = ? and user_id=?", address.ID, address.UserID).
 		Updates(address)
@@ -65,7 +80,7 @@ func (dao *UserAddressDaoImpl) UpdateUserAddress(ctx context.Context, address *m
 		return 0, ret.Error
 	}
 	log.Logger.Infof("User address updated with ID: %d", address.ID)
-
+	_ = address.Decrypt() //recover
 	return int(ret.RowsAffected), ret.Error
 }
 
@@ -79,5 +94,6 @@ func (dao *UserAddressDaoImpl) GetDefaultAddress(ctx context.Context, userID int
 		log.Logger.Errorf("Failed to get default user address: %v", ret.Error)
 		return nil, ret.Error
 	}
+	_ = address.Decrypt()
 	return &address, nil
 }
