@@ -15,6 +15,84 @@ type ZitadelProxy struct {
 	mock.Mock
 }
 
+// AuthCallback provides a mock function with given fields: ctx, code
+func (_m *ZitadelProxy) AuthCallback(ctx context.Context, code string) (*model.UserSession, error) {
+	ret := _m.Called(ctx, code)
+
+	if len(ret) == 0 {
+		panic("no return value specified for AuthCallback")
+	}
+
+	var r0 *model.UserSession
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (*model.UserSession, error)); ok {
+		return rf(ctx, code)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) *model.UserSession); ok {
+		r0 = rf(ctx, code)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.UserSession)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, code)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetAuthCodeURL provides a mock function with given fields: state
+func (_m *ZitadelProxy) GetAuthCodeURL(state string) string {
+	ret := _m.Called(state)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetAuthCodeURL")
+	}
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func(string) string); ok {
+		r0 = rf(state)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	return r0
+}
+
+// RefreshUserSession provides a mock function with given fields: ctx, refreshToken
+func (_m *ZitadelProxy) RefreshUserSession(ctx context.Context, refreshToken string) (*model.UserSession, error) {
+	ret := _m.Called(ctx, refreshToken)
+
+	if len(ret) == 0 {
+		panic("no return value specified for RefreshUserSession")
+	}
+
+	var r0 *model.UserSession
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (*model.UserSession, error)); ok {
+		return rf(ctx, refreshToken)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) *model.UserSession); ok {
+		r0 = rf(ctx, refreshToken)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.UserSession)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, refreshToken)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // SyncMeta2Zitadel provides a mock function with given fields: ctx, user
 func (_m *ZitadelProxy) SyncMeta2Zitadel(ctx context.Context, user *model.User) error {
 	ret := _m.Called(ctx, user)
@@ -33,9 +111,9 @@ func (_m *ZitadelProxy) SyncMeta2Zitadel(ctx context.Context, user *model.User) 
 	return r0
 }
 
-// ValidateToken provides a mock function with given fields: ctx, tokenStr
-func (_m *ZitadelProxy) ValidateToken(ctx context.Context, tokenStr string) (*proxy.AuthUser, error) {
-	ret := _m.Called(ctx, tokenStr)
+// ValidateToken provides a mock function with given fields: ctx, tokenStr, userIdKey, clientId
+func (_m *ZitadelProxy) ValidateToken(ctx context.Context, tokenStr string, userIdKey string, clientId string) (*proxy.AuthUser, error) {
+	ret := _m.Called(ctx, tokenStr, userIdKey, clientId)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ValidateToken")
@@ -43,19 +121,19 @@ func (_m *ZitadelProxy) ValidateToken(ctx context.Context, tokenStr string) (*pr
 
 	var r0 *proxy.AuthUser
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) (*proxy.AuthUser, error)); ok {
-		return rf(ctx, tokenStr)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) (*proxy.AuthUser, error)); ok {
+		return rf(ctx, tokenStr, userIdKey, clientId)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string) *proxy.AuthUser); ok {
-		r0 = rf(ctx, tokenStr)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) *proxy.AuthUser); ok {
+		r0 = rf(ctx, tokenStr, userIdKey, clientId)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*proxy.AuthUser)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, tokenStr)
+	if rf, ok := ret.Get(1).(func(context.Context, string, string, string) error); ok {
+		r1 = rf(ctx, tokenStr, userIdKey, clientId)
 	} else {
 		r1 = ret.Error(1)
 	}

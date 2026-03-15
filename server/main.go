@@ -17,6 +17,7 @@ import (
 	"github.com/sw5005-sus/ceramicraft-user-mservice/server/mq"
 	"github.com/sw5005-sus/ceramicraft-user-mservice/server/proxy"
 	"github.com/sw5005-sus/ceramicraft-user-mservice/server/repository"
+	"github.com/sw5005-sus/ceramicraft-user-mservice/server/repository/redis"
 )
 
 var (
@@ -34,6 +35,8 @@ func main() {
 	log.Logger.Infof("ceramicraft-secure init done.")
 	repository.Init()
 	log.Logger.Info("Database initialized.")
+	redis.InitRedis()
+	log.Logger.Info("Redis initialized.")
 	mq.InitKafka()
 	log.Logger.Info("Kafka initialized.")
 	proxy.InitZitadel()

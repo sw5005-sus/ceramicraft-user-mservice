@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -20,21 +21,31 @@ import (
 	"github.com/sw5005-sus/ceramicraft-user-mservice/server/config"
 	"github.com/sw5005-sus/ceramicraft-user-mservice/server/log"
 	"github.com/sw5005-sus/ceramicraft-user-mservice/server/repository/model"
+	"golang.org/x/oauth2"
+)
+
+const (
+	APP_ZITADEL_USER_KEY   = "local_userid"
+	ADMIN_ZITADEL_USER_KEY = "admin_userid"
 )
 
 //go:generate mockery --name ZitadelProxy --output ./mocks --case underscore
 type ZitadelProxy interface {
-	ValidateToken(ctx context.Context, tokenStr string) (*AuthUser, error)
+	ValidateToken(ctx context.Context, tokenStr, userIdKey, clientId string) (*AuthUser, error)
 	VerifyTokenWithBackendIdentity(ctx context.Context, accessToken string) (*model.User, error)
 	SyncMeta2Zitadel(ctx context.Context, user *model.User) error
+	AuthCallback(ctx context.Context, code string) (*model.UserSession, error)
+	GetAuthCodeURL(state string) string
+	RefreshUserSession(ctx context.Context, refreshToken string) (*model.UserSession, error)
 }
 
 type zitadelProxyImpl struct {
-	apiKey      *ZitadelAppKey
-	mngKey      *ZitadelServiceKey
-	accessToken *ZitadelAccessToken
-	lock        sync.Mutex
-	kf          keyfunc.Keyfunc
+	apiKey       *ZitadelAppKey
+	mngKey       *ZitadelServiceKey
+	accessToken  *ZitadelAccessToken
+	lock         sync.Mutex
+	kf           keyfunc.Keyfunc
+	oauth2Config *oauth2.Config
 }
 
 var (
@@ -55,11 +66,27 @@ func InitZitadel() {
 	if err != nil {
 		panic(fmt.Errorf("failed to initialize JWKS: %v", err))
 	}
+
 }
 
-func GetZitadelProxy() *zitadelProxyImpl {
+func GetZitadelProxy() ZitadelProxy {
 	zitadelProxyOnce.Do(func() {
-		zitadelProxyImpl := &zitadelProxyImpl{}
+		conf := &oauth2.Config{
+			ClientID:     os.Getenv("ZITADEL_ADMIN_CLIENT_ID"),
+			ClientSecret: os.Getenv("ZITADEL_ADMIN_CLIENT_SECRET"),
+			RedirectURL:  config.Config.ZitadelConfig.OauthCallbackUrl,
+			Endpoint: oauth2.Endpoint{
+				AuthURL:  config.Config.ZitadelConfig.Host + "/oauth/v2/authorize",
+				TokenURL: config.Config.ZitadelConfig.Host + "/oauth/v2/token",
+			},
+			Scopes: []string{"openid", "profile", "email", "offline_access", "urn:zitadel:iam:user:metadata", "urn:zitadel:iam:org:project:roles"},
+		}
+		if conf.ClientID == "" || conf.ClientSecret == "" {
+			panic("ZITADEL_ADMIN_CLIENT_ID and ZITADEL_ADMIN_CLIENT_SECRET environment variables must be set")
+		}
+		zitadelProxyImpl := &zitadelProxyImpl{
+			oauth2Config: conf,
+		}
 		zitadelProxyInstance = zitadelProxyImpl
 	})
 	return zitadelProxyInstance
@@ -102,29 +129,26 @@ type MyCustomClaims struct {
 	Metadata map[string]string `json:"urn:zitadel:iam:user:metadata"`
 }
 
-func (t *MyCustomClaims) Valid(zitalConfig *config.ZitadelConfig) error {
-	if zitalConfig == nil {
-		return fmt.Errorf("invalid token: zitadel config is nil")
-	}
+func (t *MyCustomClaims) Valid(clientId string) error {
 	if t.Issuer != config.Config.ZitadelConfig.Host {
 		return fmt.Errorf("invalid token: issuer mismatch")
 	}
 	foundAudience := false
 	for _, aud := range t.Audience {
-		if aud == config.Config.ZitadelConfig.ClientId {
+		if aud == clientId {
 			foundAudience = true
 			break
 		}
 	}
 
 	if !foundAudience {
-		return fmt.Errorf("audience mismatch: expected %s", config.Config.ZitadelConfig.ClientId)
+		return fmt.Errorf("audience mismatch: expected %s", clientId)
 	}
 	return nil
 }
 
-func (t *MyCustomClaims) getLocalUserId() int {
-	if rawID, ok := t.Metadata["local_userid"]; ok {
+func (t *MyCustomClaims) getUserId(keyName string) int {
+	if rawID, ok := t.Metadata[keyName]; ok {
 		decoded, err := base64.RawStdEncoding.DecodeString(rawID)
 		if err != nil {
 			log.Logger.Errorf("failed to decode local_userid from token metadata: %v", err)
@@ -158,7 +182,47 @@ func (z *zitadelProxyImpl) initJWKS(ctx context.Context) error {
 	return nil
 }
 
-func (z *zitadelProxyImpl) ValidateToken(ctx context.Context, tokenStr string) (*AuthUser, error) {
+// RefreshUserSession implements [ZitadelProxy].
+func (z *zitadelProxyImpl) RefreshUserSession(ctx context.Context, refreshToken string) (*model.UserSession, error) {
+	oldToken := &oauth2.Token{
+		RefreshToken: refreshToken,
+	}
+	ts := z.oauth2Config.TokenSource(ctx, oldToken)
+	newToken, err := ts.Token()
+	if err != nil {
+		return nil, fmt.Errorf("failed to refresh token: %w", err)
+	}
+	return z.buildUserSession(ctx, newToken, ADMIN_ZITADEL_USER_KEY, config.Config.ZitadelConfig.AdminClientId)
+}
+
+func (z *zitadelProxyImpl) AuthCallback(ctx context.Context, code string) (*model.UserSession, error) {
+	token, err := z.oauth2Config.Exchange(ctx, code)
+	if err != nil {
+		return nil, fmt.Errorf("failed to exchange code for token: %w", err)
+	}
+	return z.buildUserSession(ctx, token, ADMIN_ZITADEL_USER_KEY, config.Config.ZitadelConfig.AdminClientId)
+}
+
+func (z *zitadelProxyImpl) buildUserSession(ctx context.Context, token *oauth2.Token, userIdKey, clientId string) (*model.UserSession, error) {
+	ret := &model.UserSession{
+		AccessToken:  token.AccessToken,
+		ExpiresAt:    token.Expiry,
+		RefreshToken: token.RefreshToken,
+	}
+	idToken, ok := token.Extra("id_token").(string)
+	if !ok {
+		log.Logger.Warnf("id_token not found in token response")
+	}
+	ret.IDToken = idToken
+	user, err := z.ValidateToken(ctx, idToken, userIdKey, clientId)
+	if err != nil {
+		return nil, fmt.Errorf("failed to validate ID token: %w", err)
+	}
+	ret.UserID = user.LocalUserId
+	return ret, nil
+}
+
+func (z *zitadelProxyImpl) ValidateToken(ctx context.Context, tokenStr, userIdKey, clientId string) (*AuthUser, error) {
 	if tokenStr == "" {
 		return nil, fmt.Errorf("token is empty")
 	}
@@ -166,14 +230,16 @@ func (z *zitadelProxyImpl) ValidateToken(ctx context.Context, tokenStr string) (
 	token, err := jwt.ParseWithClaims(tokenStr, claims, func(token *jwt.Token) (interface{}, error) {
 		return z.kf.Keyfunc(token)
 	})
-
+	if err != nil && errors.Is(err, jwt.ErrTokenExpired) {
+		return &AuthUser{LocalUserId: claims.getUserId(userIdKey)}, fmt.Errorf("token is expired: %w", err)
+	}
 	if err != nil || !token.Valid {
 		return nil, fmt.Errorf("invalid token: %w", err)
 	}
-	if err = claims.Valid(config.Config.ZitadelConfig); err != nil {
+	if err = claims.Valid(clientId); err != nil {
 		return nil, fmt.Errorf("invalid token claims: %w", err)
 	}
-	return &AuthUser{Sub: claims.Subject, LocalUserId: claims.getLocalUserId()}, nil
+	return &AuthUser{Sub: claims.Subject, LocalUserId: claims.getUserId(userIdKey)}, nil
 }
 
 func (z *zitadelProxyImpl) loadKey() error {
@@ -335,12 +401,18 @@ func (z *zitadelProxyImpl) getActualAccessToken() (string, error) {
 	if err != nil {
 		return "", err
 	}
+	log.Logger.Infof("Successfully obtained access token, response: %v", result)
 
 	if result.AccessToken != "" {
 		z.accessToken = &result
 		z.accessToken.ExpiresAt = time.Now().Unix() + int64(result.ExpiresIn) - 10 // 10s before actual expiration to avoid edge case
 	}
 	return result.AccessToken, nil
+}
+
+// GetAuthCodeURL implements [ZitadelProxy].
+func (z *zitadelProxyImpl) GetAuthCodeURL(state string) string {
+	return z.oauth2Config.AuthCodeURL(state, oauth2.AccessTypeOffline)
 }
 
 func generateAssersionToken(sub, key, keyId string) (string, error) {
