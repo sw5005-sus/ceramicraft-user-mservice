@@ -80,7 +80,7 @@ func (o *oAuthServiceImpl) MerchantVerify(ctx context.Context, token string) (he
 	return map[string]string{
 			bo.OAuthHeaderUserId: fmt.Sprintf("%d", authUser.LocalUserId),
 		}, map[string]string{
-			"oauth_token": newSession.IDToken,
+			bo.OAuthTokenCookieName: newSession.IDToken,
 		}, nil
 }
 

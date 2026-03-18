@@ -25,7 +25,7 @@ func TestZitadelCallback(t *testing.T) {
 			zitadelProxy:   mockZitadelProxy,
 			userSessionDao: mockSessionDao,
 		}
-		mockZitadelProxy.On("AuthCallback", ctx, code).Return(&model.UserSession{AccessToken: "test_token"}, nil)
+		mockZitadelProxy.On("AuthCallback", ctx, code).Return(&model.UserSession{IDToken: "test_token"}, nil)
 		mockSessionDao.On("SetSession", ctx, mock.Anything).Return(nil)
 
 		token, err := service.ZitadelCallback(ctx, code)

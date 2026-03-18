@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/sw5005-sus/ceramicraft-user-mservice/common/bo"
 	"github.com/sw5005-sus/ceramicraft-user-mservice/server/config"
 	"github.com/sw5005-sus/ceramicraft-user-mservice/server/http/data"
 	"github.com/sw5005-sus/ceramicraft-user-mservice/server/log"
@@ -94,13 +95,13 @@ func AdminLoginCallback(c *gin.Context) {
 		return
 	}
 	http.SetCookie(c.Writer, &http.Cookie{
-		Name:     "oauth_token",
+		Name:     bo.OAuthTokenCookieName,
 		Value:    token,
 		Domain:   getCookieDomain(c.Request.Host),
 		HttpOnly: true,
 		Path:     "/",
 	})
-	c.JSON(http.StatusOK, data.BaseResponse{Data: "Login successful"})
+	c.Redirect(http.StatusFound, config.Config.SystemConfig.HomeUrl)
 }
 
 // UserLogin handles user login requests.
@@ -162,9 +163,9 @@ func UserLogout(c *gin.Context) {
 // @Router /user-ms/v1/merchant/oauth-logout [get]
 func OAuthLogout(c *gin.Context) {
 	userId := c.GetInt("userID")
-	idToken, _ := c.Cookie("oauth_token")
+	idToken, _ := c.Cookie(bo.OAuthTokenCookieName)
 	// Invalidate the auth-token cookie by setting its MaxAge to -1
-	c.SetCookie("oauth_token", "", -1, "/", c.Request.Host, true, true)
+	c.SetCookie(bo.OAuthTokenCookieName, "", -1, "/", c.Request.Host, true, true)
 	c.SetCookie("oauth_state", "", -1, "/", "", false, true)
 	zitadelLogoutURL := config.Config.ZitadelConfig.Host + "/oidc/v1/end_session"
 	postLogoutRedirectURI := config.Config.SystemConfig.HomeUrl

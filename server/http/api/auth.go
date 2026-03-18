@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/sw5005-sus/ceramicraft-user-mservice/common/bo"
 	"github.com/sw5005-sus/ceramicraft-user-mservice/server/log"
 	"github.com/sw5005-sus/ceramicraft-user-mservice/server/service"
 )
@@ -71,7 +72,7 @@ func readTokenFromHeader(c *gin.Context) string {
 }
 
 func readTokenFromCookie(c *gin.Context) string {
-	token, err := c.Cookie("oauth_token")
+	token, err := c.Cookie(bo.OAuthTokenCookieName)
 	if err != nil {
 		log.Logger.Infof("no auth cookie found")
 		return ""
