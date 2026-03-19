@@ -23,7 +23,7 @@ import (
 
 const tokenExpireDuration = 3600 * 24 * 365 // 1 year
 
-// AdminLoginCallback handles admin oauth login callback.
+// OAuthLogin initiates the admin OAuth login flow.
 //
 // @Summary Admin OAuthLogin
 // @Description Initiates the OAuth login process for admin users by generating a state, setting it in a cookie, and redirecting to the OAuth provider's authorization URL.
@@ -39,14 +39,6 @@ func OAuthLogin(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, data.BaseResponse{ErrMsg: "Failed to generate state"})
 		return
 	}
-	http.SetCookie(c.Writer, &http.Cookie{
-		Name:     "oauth_state",
-		Value:    state,
-		Domain:   getCookieDomain(c.Request.Host),
-		Expires:  time.Now().Add(10 * time.Minute),
-		HttpOnly: true,
-		Path:     "/",
-	})
 	c.SetCookie("oauth_state", state, 300, "/", getCookieDomain(c.Request.Host), false, true)
 	authURL := proxy.GetZitadelProxy().GetAuthCodeURL(state)
 	c.Redirect(http.StatusFound, authURL)
@@ -57,7 +49,7 @@ func generateState(n int) (string, error) {
 	if _, err := rand.Read(data); err != nil {
 		return "", err
 	}
-	return base64.StdEncoding.EncodeToString(data), nil
+	return base64.RawURLEncoding.EncodeToString(data), nil
 }
 
 // AdminLoginCallback handles admin oauth login callback.
@@ -100,6 +92,8 @@ func AdminLoginCallback(c *gin.Context) {
 		Domain:   getCookieDomain(c.Request.Host),
 		HttpOnly: true,
 		Path:     "/",
+		Secure:   true,
+		SameSite: http.SameSiteLaxMode,
 	})
 	c.Redirect(http.StatusFound, config.Config.SystemConfig.HomeUrl)
 }
@@ -163,16 +157,17 @@ func UserLogout(c *gin.Context) {
 // @Router /user-ms/v1/merchant/oauth-logout [get]
 func OAuthLogout(c *gin.Context) {
 	userId := c.GetInt("userID")
-	idToken, _ := c.Cookie(bo.OAuthTokenCookieName)
+	cookieDomain := getCookieDomain(c.Request.Host)
 	// Invalidate the auth-token cookie by setting its MaxAge to -1
-	c.SetCookie(bo.OAuthTokenCookieName, "", -1, "/", c.Request.Host, true, true)
-	c.SetCookie("oauth_state", "", -1, "/", "", false, true)
+	c.SetCookie(bo.OAuthTokenCookieName, "", -1, "/", cookieDomain, true, true)
+	c.SetCookie("oauth_state", "", -1, "/", cookieDomain, true, true)
 	zitadelLogoutURL := config.Config.ZitadelConfig.Host + "/oidc/v1/end_session"
-	postLogoutRedirectURI := config.Config.SystemConfig.HomeUrl
 
+	postLogoutRedirectURI := config.Config.SystemConfig.HomeUrl
+	idToken, _ := c.Cookie(bo.OAuthTokenCookieName)
 	finalURL := fmt.Sprintf("%s?id_token_hint=%s&post_logout_redirect_uri=%s",
-		zitadelLogoutURL, idToken, url.QueryEscape(postLogoutRedirectURI))
-	err := redis.GetUserSessionDao().DelSession(c, userId)
+		zitadelLogoutURL, url.QueryEscape(idToken), url.QueryEscape(postLogoutRedirectURI))
+	err := redis.GetUserSessionDao().DelSession(c.Request.Context(), userId)
 	if err != nil {
 		log.Logger.Warnf("Failed to delete user session for user ID %d: %v", userId, err)
 	}

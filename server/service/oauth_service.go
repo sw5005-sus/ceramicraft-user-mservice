@@ -40,7 +40,7 @@ type oAuthServiceImpl struct {
 
 // CustomerVerify implements [OAuthService].
 func (o *oAuthServiceImpl) CustomerVerify(ctx context.Context, token string) (headerSet map[string]string, cookieSet map[string]string, err error) {
-	authUser, err := proxy.GetZitadelProxy().ValidateToken(ctx, token, proxy.APP_ZITADEL_USER_KEY, config.Config.ZitadelConfig.AppClientId)
+	authUser, err := o.zitadelProxy.ValidateToken(ctx, token, proxy.APP_ZITADEL_USER_KEY, config.Config.ZitadelConfig.AppClientId)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -52,7 +52,7 @@ func (o *oAuthServiceImpl) CustomerVerify(ctx context.Context, token string) (he
 
 // MerchantVerify implements [OAuthService].
 func (o *oAuthServiceImpl) MerchantVerify(ctx context.Context, token string) (headerSet map[string]string, cookieSet map[string]string, err error) {
-	authUser, err := proxy.GetZitadelProxy().ValidateToken(ctx, token, proxy.ADMIN_ZITADEL_USER_KEY, config.Config.ZitadelConfig.AdminClientId)
+	authUser, err := o.zitadelProxy.ValidateToken(ctx, token, proxy.ADMIN_ZITADEL_USER_KEY, config.Config.ZitadelConfig.AdminClientId)
 	if authUser == nil {
 		log.Logger.Infof("Merchant token validation failed: %v", err)
 		return nil, nil, err
@@ -67,6 +67,10 @@ func (o *oAuthServiceImpl) MerchantVerify(ctx context.Context, token string) (he
 	if err != nil {
 		log.Logger.Errorf("Failed to get user session from Redis: %v", err)
 		return nil, nil, err
+	}
+	if userSession == nil {
+		log.Logger.Infof("No user session found in Redis for user %d; forcing re-authentication", authUser.LocalUserId)
+		return nil, nil, fmt.Errorf("no active session; please re-authenticate")
 	}
 	newSession, err := o.zitadelProxy.RefreshUserSession(ctx, userSession.RefreshToken)
 	if err != nil {

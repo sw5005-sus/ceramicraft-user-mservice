@@ -375,7 +375,7 @@ func (z *zitadelProxyImpl) getActualAccessToken() (string, error) {
 	}
 	data := url.Values{}
 	data.Set("grant_type", "urn:ietf:params:oauth:grant-type:jwt-bearer")
-	data.Set("assertion", assertionToken) // 这就是你签名的那个 JWT
+	data.Set("assertion", assertionToken)
 	data.Set("scope", "openid profile urn:zitadel:iam:org:project:id:zitadel:aud")
 
 	resp, err := http.PostForm(fmt.Sprintf("%s/oauth/v2/token", config.Config.ZitadelConfig.Host), data)
@@ -395,13 +395,12 @@ func (z *zitadelProxyImpl) getActualAccessToken() (string, error) {
 		return "", fmt.Errorf("failed to get access token, status code: %d", resp.StatusCode)
 	}
 
-	// 2. 解析返回的 Access Token
 	var result ZitadelAccessToken
 	err = json.NewDecoder(resp.Body).Decode(&result)
 	if err != nil {
 		return "", err
 	}
-	log.Logger.Infof("Successfully obtained access token, response: %v", result)
+	log.Logger.Infof("Successfully obtained access token, expires_in: %d", result.ExpiresIn)
 
 	if result.AccessToken != "" {
 		z.accessToken = &result

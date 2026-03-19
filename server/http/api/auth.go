@@ -27,7 +27,7 @@ func OAuthTokenValidate(c *gin.Context) {
 		if token == "" {
 			return
 		}
-		headers, _, err := service.GetOAuthService().CustomerVerify(c, token)
+		headers, _, err := service.GetOAuthService().CustomerVerify(c.Request.Context(), token)
 		if err != nil {
 			log.Logger.Errorf("Customer token validation failed: %v", err)
 			return
@@ -38,7 +38,7 @@ func OAuthTokenValidate(c *gin.Context) {
 		if token == "" {
 			return
 		}
-		headers, cookies, err := service.GetOAuthService().MerchantVerify(c, token)
+		headers, cookies, err := service.GetOAuthService().MerchantVerify(c.Request.Context(), token)
 		if err != nil {
 			log.Logger.Errorf("Merchant token validation failed: %v", err)
 			return

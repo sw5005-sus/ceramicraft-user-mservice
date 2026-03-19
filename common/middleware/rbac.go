@@ -17,7 +17,6 @@ func RequireRoles(roles ...string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		token, err := c.Cookie(bo.OAuthTokenCookieName)
 		if err != nil {
-			c.JSON(401, gin.H{"error": "Unauthorized: invalid token"})
 			c.JSON(401, gin.H{"error": "Unauthorized: token not provided"})
 			c.Abort()
 			return
