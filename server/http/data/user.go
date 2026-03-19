@@ -1,5 +1,7 @@
 package data
 
+import "strings"
+
 type UserLoginVO struct {
 	ID       int    `json:"id"`
 	Email    string `json:"email" binding:"required,email"`
@@ -30,4 +32,24 @@ type UserAddressVO struct {
 	LastName     string `json:"last_name" binding:"required"`
 	ContactPhone string `json:"contact_phone" binding:"required,e164"`
 	IsDefault    bool   `json:"is_default"`
+}
+
+func MaskUserProfile(profile *UserProfileVO) {
+	if profile == nil {
+		return
+	}
+	profile.Email = maskEmail(profile.Email)
+}
+
+func maskEmail(email string) string {
+	parts := strings.Split(email, "@")
+	if len(parts) != 2 {
+		return email
+	}
+	username := parts[0]
+	runes := []rune(username)
+	if len(runes) <= 1 {
+		return "*@" + parts[1]
+	}
+	return string(runes[0]) + "****@" + parts[1]
 }

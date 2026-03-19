@@ -35,6 +35,7 @@ func GetUserProfile(c *gin.Context) {
 		c.JSON(http.StatusNotFound, data.BaseResponse{Code: http.StatusNotFound, ErrMsg: "User not found"})
 		return
 	}
+	data.MaskUserProfile(userProfile)
 	userDefaultAddress, err := service.GetUserAddressService().GetDefaultAddress(c, userId.(int))
 	if err != nil {
 		log.Logger.Errorf("Failed to get default address for user ID %d: %v", userId.(int), err)
