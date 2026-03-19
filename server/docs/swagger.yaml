@@ -80,8 +80,8 @@ paths:
     get:
       consumes:
       - application/json
-      description: This endpoint validates the provided JWT token and returns user
-        information if the token is valid.
+      description: This endpoint validates the provided JWT token. If the token is
+        valid, it sets response headers.
       parameters:
       - description: Insert your access token with 'Bearer ' prefix
         in: header
@@ -408,4 +408,69 @@ paths:
       summary: Update existing User Address
       tags:
       - UserAddress
+  /user-ms/v1/merchant/login-callback:
+    get:
+      consumes:
+      - application/json
+      description: Handles the OAuth callback for admin login, exchanges the code
+        for a token, and sets it in a cookie.
+      parameters:
+      - description: Authorization code from OAuth provider
+        in: query
+        name: code
+        required: true
+        type: string
+      - description: State parameter for CSRF protection
+        in: query
+        name: state
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Login successful, returns auth token in cookie
+          schema:
+            allOf:
+            - $ref: '#/definitions/data.BaseResponse'
+            - properties:
+                data:
+                  type: string
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            allOf:
+            - $ref: '#/definitions/data.BaseResponse'
+            - properties:
+                data:
+                  type: string
+              type: object
+      summary: Admin OAuthLoginCallback
+      tags:
+      - Authentication
+  /user-ms/v1/merchant/oauth-login:
+    get:
+      consumes:
+      - application/json
+      description: Initiates the OAuth login process for admin users by generating
+        a state, setting it in a cookie, and redirecting to the OAuth provider's authorization
+        URL.
+      produces:
+      - application/json
+      responses:
+        "302":
+          description: Redirects to OAuth provider for authentication
+      summary: Admin OAuthLogin
+      tags:
+      - Authentication
+  /user-ms/v1/merchant/oauth-logout:
+    get:
+      description: Logs out the user from the OAuth provider and invalidates the session.
+      responses:
+        "302":
+          description: Redirects to OAuth provider logout endpoint
+      summary: OAuth Logout
+      tags:
+      - Authentication
 swagger: "2.0"

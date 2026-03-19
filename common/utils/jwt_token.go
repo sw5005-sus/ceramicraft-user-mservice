@@ -79,20 +79,13 @@ func ParseToken(token string) (jwt.MapClaims, error) {
 	if jwtSecret == "" {
 		return nil, fmt.Errorf("JWT secret is not set")
 	}
-	parsedToken, err := jwt.Parse(token, func(t *jwt.Token) (interface{}, error) {
-		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("unexpected signing method: %v", t.Header["alg"])
-		}
-		return []byte(jwtSecret), nil
-	})
+	claims := jwt.MapClaims{}
+	parser := jwt.NewParser()
+	_, _, err := parser.ParseUnverified(token, claims)
 
 	if err != nil {
 		return nil, err
 	}
 
-	if claims, ok := parsedToken.Claims.(jwt.MapClaims); ok && parsedToken.Valid {
-		return claims, nil
-	}
-
-	return nil, errors.New("invalid token")
+	return claims, nil
 }

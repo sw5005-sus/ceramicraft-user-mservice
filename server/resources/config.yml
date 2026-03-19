@@ -32,4 +32,13 @@ kafka:
 
 zitadel:
   host: "https://cerami-t6ihrd.us1.zitadel.cloud"
-  client_id: "361761429302373082"
+  app_client_id: "361761429302373082"
+  admin_client_id: "364221631029152417"
+  oauth_callback_url: "https://api.ntdoc.site/user-ms/v1/merchant/login-callback"
+
+redis:
+  host: "redis-container"
+  port: "6379"
+
+system:
+  home_url: "https://admin.ntdoc.site"

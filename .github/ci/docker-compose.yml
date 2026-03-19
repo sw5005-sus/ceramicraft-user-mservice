@@ -58,6 +58,19 @@ services:
       timeout: 2s
       retries: 5
 
+  redis-container:
+    image: redis:7.0
+    container_name: redis-container
+    ports:
+      - "6379:6379"
+    networks:
+      ci-net:
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 2s
+      retries: 5
+
   ceramicraft-user-mservice:
     build:
       context: ../../server
@@ -70,6 +83,8 @@ services:
       - JWT_SECRET=${JWT_SECRET}
       - ZITADEL_APP_API_KEY={"key":"test-key"}
       - ZITADEL_SERVICE_API_KEY={"key":"test-key"}
+      - ZITADEL_ADMIN_CLIENT_ID=client-id
+      - ZITADEL_ADMIN_CLIENT_SECRET=client-secret
       - VAULT_ADDR=http://vault:8200
       - VAULT_TOKEN=root-token
 
@@ -79,6 +94,8 @@ services:
       kafka-container:
         condition: service_started
       vault:
+        condition: service_healthy
+      redis-container:
         condition: service_healthy
 
     networks:

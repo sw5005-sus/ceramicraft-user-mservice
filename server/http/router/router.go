@@ -51,6 +51,8 @@ func NewRouter() *gin.Engine {
 		v1UnAuthed.POST("/customer/oauth-callback", api.OAuthCallback)
 
 		v1UnAuthed.POST("/merchant/login", api.UserLogin)
+		v1UnAuthed.GET("/merchant/oauth-login", api.OAuthLogin)
+		v1UnAuthed.GET("/merchant/login-callback", api.AdminLoginCallback)
 	}
 	v1Authed := basicGroup.Group("")
 	{
@@ -64,6 +66,7 @@ func NewRouter() *gin.Engine {
 		v1Authed.DELETE("/customer/users/self/addresses/:address_id", api.DeleteUserAddress)
 
 		v1Authed.POST("/merchant/logout", api.UserLogout)
+		v1Authed.GET("/merchant/oauth-logout", api.OAuthLogout)
 	}
 	return r
 }

@@ -23,6 +23,7 @@ func initEnv() {
 		KafkaConfig: &config.KafkaConfig{
 			UserActivatedTopic: "user_activated",
 		},
+		ZitadelConfig: &config.ZitadelConfig{},
 	}
 	log.InitLogger()
 	err := os.Setenv("JWT_SECRET", "TEST_SECRET_KEY")
@@ -30,6 +31,8 @@ func initEnv() {
 		panic(err)
 	}
 	utils.InitJwtSecret()
+	_ = os.Setenv("ZITADEL_ADMIN_CLIENT_ID", "test-client-id")
+	_ = os.Setenv("ZITADEL_ADMIN_CLIENT_SECRET", "test-client-secret")
 }
 
 func TestLogin(t *testing.T) {

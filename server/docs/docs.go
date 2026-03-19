@@ -17,7 +17,7 @@ const docTemplate = `{
     "paths": {
         "/oauth/v1/verify": {
             "get": {
-                "description": "This endpoint validates the provided JWT token and returns user information if the token is valid.",
+                "description": "This endpoint validates the provided JWT token. If the token is valid, it sets response headers.",
                 "consumes": [
                     "application/json"
                 ],
@@ -291,6 +291,109 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/data.BaseResponse"
                         }
+                    }
+                }
+            }
+        },
+        "/user-ms/v1/merchant/login-callback": {
+            "get": {
+                "description": "Handles the OAuth callback for admin login, exchanges the code for a token, and sets it in a cookie.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Admin OAuthLoginCallback",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Authorization code from OAuth provider",
+                        "name": "code",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "State parameter for CSRF protection",
+                        "name": "state",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Login successful, returns auth token in cookie",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/data.BaseResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/data.BaseResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/user-ms/v1/merchant/oauth-login": {
+            "get": {
+                "description": "Initiates the OAuth login process for admin users by generating a state, setting it in a cookie, and redirecting to the OAuth provider's authorization URL.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Admin OAuthLogin",
+                "responses": {
+                    "302": {
+                        "description": "Redirects to OAuth provider for authentication"
+                    }
+                }
+            }
+        },
+        "/user-ms/v1/merchant/oauth-logout": {
+            "get": {
+                "description": "Logs out the user from the OAuth provider and invalidates the session.",
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "OAuth Logout",
+                "responses": {
+                    "302": {
+                        "description": "Redirects to OAuth provider logout endpoint"
                     }
                 }
             }

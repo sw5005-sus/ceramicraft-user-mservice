@@ -18,6 +18,8 @@ type Conf struct {
 	EmailConfig   *EmailConfig   `mapstructure:"email"`
 	KafkaConfig   *KafkaConfig   `mapstructure:"kafka"`
 	ZitadelConfig *ZitadelConfig `mapstructure:"zitadel"`
+	RedisConfig   *RedisConfig   `mapstructure:"redis"`
+	SystemConfig  *SystemConfig  `mapstructure:"system"`
 }
 
 type EmailConfig struct {
@@ -62,8 +64,19 @@ type KafkaConfig struct {
 }
 
 type ZitadelConfig struct {
-	Host     string `mapstructure:"host"`
-	ClientId string `mapstructure:"client_id"`
+	Host             string `mapstructure:"host"`
+	AppClientId      string `mapstructure:"app_client_id"`
+	AdminClientId    string `mapstructure:"admin_client_id"`
+	OauthCallbackUrl string `mapstructure:"oauth_callback_url"`
+}
+
+type RedisConfig struct {
+	Host string `mapstructure:"host"`
+	Port string `mapstructure:"port"`
+}
+
+type SystemConfig struct {
+	HomeUrl string `mapstructure:"home_url"`
 }
 
 func Init() {
