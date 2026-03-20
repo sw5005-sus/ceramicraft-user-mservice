@@ -242,6 +242,38 @@ func TestUserAddressService_UpdateUserAddress(t *testing.T) {
 			t.Errorf("Expected an error, got nil")
 		}
 	})
+
+	t.Run("UpdateUserAddress Sanitization", func(t *testing.T) {
+		userDao := new(mocks.UserAddressDao)
+		service := UserAddressServiceImpl{
+			userAddressDao: userDao,
+		}
+		ctx := context.Background()
+		address := &data.UserAddressVO{
+			ID:           1,
+			UserID:       1,
+			ZipCode:      "123456",
+			Country:      "Country",
+			Province:     "Province",
+			City:         "City",
+			Detail:       "<script>alert('xss')</script>",
+			FirstName:    "First",
+			LastName:     "Last",
+			ContactPhone: "1234567890",
+			IsDefault:    true,
+		}
+		address.Detail = strictSanitization(address.Detail)
+		userDao.On("UpdateUserAddress", ctx, mock.MatchedBy(func(userAddress *model.UserAddress) bool {
+			return userAddress.ID == 1 && userAddress.DefaultMarkTime > 0 && userAddress.Detail == address.Detail
+		})).Return(1, nil)
+
+		err := service.UpdateUserAddress(ctx, address)
+		if err != nil {
+			t.Errorf("Expected no error, got %v", err)
+		}
+		userDao.AssertCalled(t, "UpdateUserAddress", ctx, mock.Anything)
+	})
+
 }
 func TestUserAddressService_DeleteUserAddress(t *testing.T) {
 	initEnv()

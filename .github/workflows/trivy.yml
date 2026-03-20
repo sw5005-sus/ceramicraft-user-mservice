@@ -30,7 +30,7 @@ jobs:
 
       # scan and block if high severity vulnerabilities found
       - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@0.20.0
+        uses: aquasecurity/trivy-action@v0.35.0
         with:
           image-ref: ${{ env.SCAN_TAG }}
           format: 'table'
