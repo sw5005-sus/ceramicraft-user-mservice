@@ -61,7 +61,7 @@ func (u *UserProfileServiceImpl) UpdateUserProfile(ctx context.Context, userID i
 		log.Logger.Warnf("User not found with id: %d", userID)
 		return sql.ErrNoRows
 	}
-	user.Name = profile.Name
+	user.Name = strictSanitization(profile.Name)
 	user.AvatarId = profile.Avatar
 	err = u.userDao.UpdateUser(ctx, user)
 	log.Logger.Infof("User profile updated for user id: %d\terr=%v", userID, err)

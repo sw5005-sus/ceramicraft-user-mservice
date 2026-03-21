@@ -58,6 +58,7 @@ func GetUserProfile(c *gin.Context) {
 func UpdateUserProfile(c *gin.Context) {
 	var userProfile data.UserProfileVO
 	if err := c.ShouldBindJSON(&userProfile); err != nil {
+		log.Logger.Errorf("Failed to bind user profile JSON: %v", err)
 		c.JSON(http.StatusBadRequest, data.BaseResponse{Code: http.StatusBadRequest, ErrMsg: "Invalid input"})
 		return
 	}
@@ -78,6 +79,7 @@ func UpdateUserProfile(c *gin.Context) {
 			c.JSON(http.StatusNotFound, data.BaseResponse{Code: http.StatusNotFound, ErrMsg: "User not found"})
 			return
 		}
+		log.Logger.Errorf("Failed to update user profile for user ID %d: %v", userProfile.ID, err)
 		c.JSON(http.StatusInternalServerError, data.BaseResponse{Code: http.StatusInternalServerError, ErrMsg: err.Error()})
 		return
 	}
