@@ -38,6 +38,11 @@ func RequireRoles(roles ...string) gin.HandlerFunc {
 			c.Abort()
 			return
 		}
+		rolesList := make([]string, 0, len(userRoles))
+		for role := range userRoles {
+			rolesList = append(rolesList, role)
+		}
+		c.Set("roles", rolesList)
 		if hasRequiredRole(userRoles, roles) {
 			c.Next()
 			return
