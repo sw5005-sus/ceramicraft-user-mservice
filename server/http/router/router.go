@@ -67,6 +67,9 @@ func NewRouter() *gin.Engine {
 
 		v1Authed.POST("/merchant/logout", api.UserLogout)
 		v1Authed.GET("/merchant/oauth-logout", api.OAuthLogout)
+		v1Authed.GET("/merchant/users/self/roles",
+			middleware.RequireRoles("merchant_admin", "product_auditor", "product_editor"),
+			api.GetUserRoles)
 	}
 	return r
 }

@@ -19,26 +19,33 @@ definitions:
   data.UserAddressVO:
     properties:
       city:
+        maxLength: 50
         type: string
       contact_phone:
         type: string
       country:
+        maxLength: 50
         type: string
       detail:
+        maxLength: 255
         type: string
       first_name:
+        maxLength: 50
         type: string
       id:
         type: integer
       is_default:
         type: boolean
       last_name:
+        maxLength: 50
         type: string
       province:
+        maxLength: 50
         type: string
       user_id:
         type: integer
       zip_code:
+        maxLength: 10
         type: string
     required:
     - contact_phone
@@ -71,6 +78,7 @@ definitions:
       id:
         type: integer
       name:
+        maxLength: 50
         type: string
     type: object
 info:
@@ -473,4 +481,23 @@ paths:
       summary: OAuth Logout
       tags:
       - Authentication
+  /user-ms/v1/merchant/users/self/roles:
+    get:
+      consumes:
+      - application/json
+      description: This endpoint allows current login user fetch his/her roles.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: data is []string
+          schema:
+            $ref: '#/definitions/data.BaseResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/data.BaseResponse'
+      summary: Get User Roles
+      tags:
+      - UserRole
 swagger: "2.0"
