@@ -11,6 +11,34 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// Get Current User Roles.
+// @Summary Get User Roles
+// @Description This endpoint allows current login user fetch his/her roles.
+// @Tags UserRole
+// @Accept json
+// @Produce json
+// @Success 200 {object} data.BaseResponse "data is []string"
+// @Failure 500 {object} data.BaseResponse
+// @Router /user-ms/v1/merchant/users/self/roles [get]
+func GetUserRoles(c *gin.Context) {
+	userId, exist := c.Get("userID")
+	if !exist || userId.(int) <= 0 {
+		c.JSON(http.StatusUnauthorized, data.BaseResponse{Code: http.StatusUnauthorized, ErrMsg: "Unauthorized"})
+		return
+	}
+	roles, exist := c.Get("roles")
+	if !exist {
+		roles = []string{}
+	}
+	rolesList, ok := roles.([]string)
+	if !ok {
+		log.Logger.Warnf("Roles in context is not a []string: %v", roles)
+		c.JSON(http.StatusInternalServerError, data.BaseResponse{Code: http.StatusInternalServerError, ErrMsg: "Failed to get user roles"})
+		return
+	}
+	c.JSON(http.StatusOK, data.BaseResponse{Code: http.StatusOK, Data: rolesList})
+}
+
 // Get Current UserProfile.
 // @Summary Get User Profile
 // @Description This endpoint allows current login user fetch his/her profile in JSON format.

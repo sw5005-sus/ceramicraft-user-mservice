@@ -398,6 +398,35 @@ const docTemplate = `{
                 }
             }
         },
+        "/user-ms/v1/merchant/users/self/roles": {
+            "get": {
+                "description": "This endpoint allows current login user fetch his/her roles.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "UserRole"
+                ],
+                "summary": "Get User Roles",
+                "responses": {
+                    "200": {
+                        "description": "data is []string",
+                        "schema": {
+                            "$ref": "#/definitions/data.BaseResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/data.BaseResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/user-ms/v1/{client}/login": {
             "post": {
                 "description": "Authenticates a user with their email and password and returns a token.",
@@ -668,19 +697,23 @@ const docTemplate = `{
             ],
             "properties": {
                 "city": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 50
                 },
                 "contact_phone": {
                     "type": "string"
                 },
                 "country": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 50
                 },
                 "detail": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 255
                 },
                 "first_name": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 50
                 },
                 "id": {
                     "type": "integer"
@@ -689,16 +722,19 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "last_name": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 50
                 },
                 "province": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 50
                 },
                 "user_id": {
                     "type": "integer"
                 },
                 "zip_code": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 10
                 }
             }
         },
@@ -736,7 +772,8 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "name": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 50
                 }
             }
         }
