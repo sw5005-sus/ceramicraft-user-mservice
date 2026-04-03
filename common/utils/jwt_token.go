@@ -76,9 +76,6 @@ func ValidateJWTToken(token string) (int, error) {
 }
 
 func ParseToken(token string) (jwt.MapClaims, error) {
-	if jwtSecret == "" {
-		return nil, fmt.Errorf("JWT secret is not set")
-	}
 	claims := jwt.MapClaims{}
 	parser := jwt.NewParser()
 	_, _, err := parser.ParseUnverified(token, claims)

@@ -23,7 +23,6 @@ func RequireRoles(roles ...string) gin.HandlerFunc {
 		}
 		claims, err := utils.ParseToken(token)
 		if err != nil {
-			c.JSON(401, gin.H{"error": "Unauthorized: invalid token"})
 			c.JSON(401, gin.H{"error": "Unauthorized: token parse error"})
 			c.Abort()
 			return
