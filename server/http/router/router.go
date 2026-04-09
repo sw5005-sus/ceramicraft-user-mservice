@@ -49,6 +49,7 @@ func NewRouter() *gin.Engine {
 	v1UnAuthed := basicGroup.Group("")
 	v1UnAuthed.Use(otelgin.Middleware(serviceName), log.TraceLoggerMiddleware())
 	{
+		
 		v1UnAuthed.POST("/customer/login", api.UserLogin)
 		v1UnAuthed.POST("/customer/users", api.Register)
 		v1UnAuthed.PUT("/customer/users/activate", api.Validate)

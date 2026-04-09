@@ -39,6 +39,7 @@ func WithContext(ctx context.Context) *zap.SugaredLogger {
 		return Logger
 	}
 	if l, ok := ctx.Value(ctxKey{}).(*zap.SugaredLogger); ok && l != nil {
+		fmt.Println("logger found in context, will use it")
 		return l
 	}
 	return Logger
@@ -51,6 +52,7 @@ func TraceLoggerMiddleware() gin.HandlerFunc {
 
 		logger := Logger
 		if sc.IsValid() {
+			fmt.Println("span valid, will log with trace")
 			logger = Logger.With(
 				"trace_id", sc.TraceID().String(),
 				"span_id", sc.SpanID().String(),
