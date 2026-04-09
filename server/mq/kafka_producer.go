@@ -47,6 +47,6 @@ func (k *KafkaProducerImpl) Produce(ctx context.Context, topic string, key strin
 	}
 
 	err := k.producer.WriteMessages(ctx, kafka.Message{Topic: topic, Key: []byte(key), Value: value})
-	log.Logger.Infof("Produced message to topic %s: key=%s, value=%s, err=%v", topic, key, string(value), err)
+	log.WithContext(ctx).Infof("Produced message to topic %s: key=%s, value=%s, err=%v", topic, key, string(value), err)
 	return err
 }

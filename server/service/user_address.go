@@ -45,7 +45,7 @@ func (u *UserAddressServiceImpl) GetUserAddresses(ctx context.Context, userID in
 		return nil, err
 	}
 	if len(addresses) == 0 {
-		log.Logger.Infof("No addresses found for user ID: %d", userID)
+		log.WithContext(ctx).Infof("No addresses found for user ID: %d", userID)
 		return []*data.UserAddressVO{}, nil
 	}
 	var defaultAddr *data.UserAddressVO
@@ -86,7 +86,7 @@ func (u *UserAddressServiceImpl) GetUserAddresses(ctx context.Context, userID in
 func (u *UserAddressServiceImpl) GetDefaultAddress(ctx context.Context, userID int) (*data.UserAddressVO, error) {
 	addr, err := u.userAddressDao.GetDefaultAddress(ctx, userID)
 	if err != nil {
-		log.Logger.Errorf("Failed to get default address for user ID %d: %v", userID, err)
+		log.WithContext(ctx).Errorf("Failed to get default address for user ID %d: %v", userID, err)
 		return nil, err
 	}
 	if addr == nil {
@@ -151,11 +151,11 @@ func (u *UserAddressServiceImpl) UpdateUserAddress(ctx context.Context, address 
 	}
 	ret, err := u.userAddressDao.UpdateUserAddress(ctx, addrModel)
 	if err != nil {
-		log.Logger.Errorf("Failed to update user address: %v", err)
+		log.WithContext(ctx).Errorf("Failed to update user address: %v", err)
 		return err
 	}
 	if ret == 0 {
-		log.Logger.Warnf("No user address updated for ID: %d", address.ID)
+		log.WithContext(ctx).Warnf("No user address updated for ID: %d", address.ID)
 		return sql.ErrNoRows
 	}
 	return nil
@@ -169,11 +169,11 @@ func (u *UserAddressServiceImpl) DeleteUserAddress(ctx context.Context, addressI
 	}
 	ret, err := u.userAddressDao.UpdateUserAddress(ctx, addrModel)
 	if err != nil {
-		log.Logger.Errorf("Failed to update user address: %v", err)
+		log.WithContext(ctx).Errorf("Failed to update user address: %v", err)
 		return err
 	}
 	if ret == 0 {
-		log.Logger.Warnf("No user address updated for ID: %d", addressID)
+		log.WithContext(ctx).Warnf("No user address updated for ID: %d", addressID)
 		return sql.ErrNoRows
 	}
 	return nil

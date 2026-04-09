@@ -12,6 +12,6 @@ type UserService struct {
 }
 
 func (s *UserService) SayHello(ctx context.Context, in *userpb.HelloRequest) (*userpb.HelloResponse, error) {
-	log.Logger.Infof("Received: %v", in.GetName())
+	log.WithContext(ctx).Infof("Received: %v", in.GetName())
 	return &userpb.HelloResponse{Message: "Hello " + in.GetName()}, nil
 }

@@ -24,7 +24,7 @@ import (
 func AddUserAddress(c *gin.Context) {
 	userAddress := &data.UserAddressVO{}
 	if err := c.ShouldBindJSON(userAddress); err != nil {
-		log.Logger.Errorf("Failed to bind user address JSON: %v", err)
+		log.WithContext(c.Request.Context()).Errorf("Failed to bind user address JSON: %v", err)
 		c.JSON(http.StatusBadRequest, data.BaseResponse{Code: http.StatusBadRequest, ErrMsg: err.Error()})
 		return
 	}
@@ -36,7 +36,7 @@ func AddUserAddress(c *gin.Context) {
 	userAddress.UserID = userId.(int)
 	userAddress, err := service.GetUserAddressService().CreateUserAddress(c.Request.Context(), userAddress)
 	if err != nil {
-		log.Logger.Errorf("Failed to create user address for user ID %d: %v", userId.(int), err)
+		log.WithContext(c.Request.Context()).Errorf("Failed to create user address for user ID %d: %v", userId.(int), err)
 		c.JSON(http.StatusInternalServerError, data.BaseResponse{Code: http.StatusInternalServerError, ErrMsg: err.Error()})
 		return
 	}
@@ -61,7 +61,7 @@ func UpdateUserAddress(c *gin.Context) {
 	}
 	userAddress := &data.UserAddressVO{}
 	if err := c.ShouldBindJSON(userAddress); err != nil {
-		log.Logger.Errorf("Failed to bind user address JSON: %v", err)
+		log.WithContext(c.Request.Context()).Errorf("Failed to bind user address JSON: %v", err)
 		c.JSON(http.StatusBadRequest, data.BaseResponse{Code: http.StatusBadRequest, ErrMsg: err.Error()})
 		return
 	}
@@ -81,7 +81,7 @@ func UpdateUserAddress(c *gin.Context) {
 			c.JSON(http.StatusNotFound, data.BaseResponse{Code: http.StatusNotFound, ErrMsg: "Address not found"})
 			return
 		}
-		log.Logger.Errorf("Failed to update user address ID %d for user ID %d: %v", userAddress.ID, userId.(int), err)
+		log.WithContext(c.Request.Context()).Errorf("Failed to update user address ID %d for user ID %d: %v", userAddress.ID, userId.(int), err)
 		c.JSON(http.StatusInternalServerError, data.BaseResponse{Code: http.StatusInternalServerError, ErrMsg: err.Error()})
 		return
 	}
@@ -105,7 +105,7 @@ func ListUserAddresses(c *gin.Context) {
 	}
 	userAddresses, err := service.GetUserAddressService().GetUserAddresses(c.Request.Context(), userId.(int))
 	if err != nil {
-		log.Logger.Errorf("Failed to list user addresses for user ID %d: %v", userId.(int), err)
+		log.WithContext(c.Request.Context()).Errorf("Failed to list user addresses for user ID %d: %v", userId.(int), err)
 		c.JSON(http.StatusInternalServerError, data.BaseResponse{Code: http.StatusInternalServerError, ErrMsg: err.Error()})
 		return
 	}
@@ -144,7 +144,7 @@ func DeleteUserAddress(c *gin.Context) {
 			c.JSON(http.StatusNotFound, data.BaseResponse{Code: http.StatusNotFound, ErrMsg: "Address not found"})
 			return
 		}
-		log.Logger.Errorf("Failed to delete user address ID %d for user ID %d: %v", id, userId.(int), err)
+		log.WithContext(c.Request.Context()).Errorf("Failed to delete user address ID %d for user ID %d: %v", id, userId.(int), err)
 		c.JSON(http.StatusInternalServerError, data.BaseResponse{Code: http.StatusInternalServerError, ErrMsg: err.Error()})
 		return
 	}

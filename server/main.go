@@ -9,7 +9,6 @@ import (
 
 	ceramicraftsecure "github.com/sw5005-sus/ceramicraft-secure"
 
-	"github.com/sw5005-sus/ceramicraft-user-mservice/common/utils"
 	"github.com/sw5005-sus/ceramicraft-user-mservice/server/config"
 	"github.com/sw5005-sus/ceramicraft-user-mservice/server/grpc"
 	"github.com/sw5005-sus/ceramicraft-user-mservice/server/http"
@@ -30,8 +29,6 @@ func main() {
 	config.Init()
 	log.InitLogger()
 	log.Logger.Info("Logger initialized.")
-	utils.InitJwtSecret()
-	log.Logger.Info("JWT secret initialized.")
 	ceramicraftsecure.Init()
 	log.Logger.Infof("ceramicraft-secure init done.")
 	repository.Init()

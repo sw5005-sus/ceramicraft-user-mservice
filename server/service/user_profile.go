@@ -36,11 +36,11 @@ type UserProfileServiceImpl struct {
 func (u *UserProfileServiceImpl) GetUserProfile(ctx context.Context, userID int) (*data.UserProfileVO, error) {
 	user, err := u.userDao.GetUserById(ctx, userID)
 	if err != nil {
-		log.Logger.Errorf("Failed to get user by id: %v", err)
+		log.WithContext(ctx).Errorf("Failed to get user by id: %v", err)
 		return nil, err
 	}
 	if user == nil {
-		log.Logger.Warnf("User not found with id: %d", userID)
+		log.WithContext(ctx).Warnf("User not found with id: %d", userID)
 		return nil, nil
 	}
 	return &data.UserProfileVO{
@@ -54,16 +54,16 @@ func (u *UserProfileServiceImpl) GetUserProfile(ctx context.Context, userID int)
 func (u *UserProfileServiceImpl) UpdateUserProfile(ctx context.Context, userID int, profile *data.UserProfileVO) error {
 	user, err := u.userDao.GetUserById(ctx, userID)
 	if err != nil {
-		log.Logger.Errorf("Failed to get user by id: %v", err)
+		log.WithContext(ctx).Errorf("Failed to get user by id: %v", err)
 		return err
 	}
 	if user == nil {
-		log.Logger.Warnf("User not found with id: %d", userID)
+		log.WithContext(ctx).Warnf("User not found with id: %d", userID)
 		return sql.ErrNoRows
 	}
 	user.Name = strictSanitization(profile.Name)
 	user.AvatarId = profile.Avatar
 	err = u.userDao.UpdateUser(ctx, user)
-	log.Logger.Infof("User profile updated for user id: %d\terr=%v", userID, err)
+	log.WithContext(ctx).Infof("User profile updated for user id: %d\terr=%v", userID, err)
 	return err
 }

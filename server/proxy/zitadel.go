@@ -211,7 +211,7 @@ func (z *zitadelProxyImpl) buildUserSession(ctx context.Context, token *oauth2.T
 	}
 	idToken, ok := token.Extra("id_token").(string)
 	if !ok {
-		log.Logger.Warnf("id_token not found in token response")
+		log.WithContext(ctx).Warnf("id_token not found in token response")
 	}
 	ret.IDToken = idToken
 	user, err := z.ValidateToken(ctx, idToken, userIdKey, clientId)
@@ -285,7 +285,7 @@ func (z *zitadelProxyImpl) VerifyTokenWithBackendIdentity(ctx context.Context, a
 	resp, err := http.Post(introspectURL, "application/x-www-form-urlencoded", strings.NewReader(form.Encode()))
 	defer func() {
 		if err := resp.Body.Close(); err != nil {
-			log.Logger.Errorf("failed to close response body: %v", err)
+			log.WithContext(ctx).Errorf("failed to close response body: %v", err)
 		}
 	}()
 	if err != nil {
@@ -345,7 +345,7 @@ func (z *zitadelProxyImpl) SyncMeta2Zitadel(ctx context.Context, user *model.Use
 	defer func() {
 		if resp != nil && resp.Body != nil {
 			if err := resp.Body.Close(); err != nil {
-				log.Logger.Errorf("failed to close response body: %v", err)
+				log.WithContext(ctx).Errorf("failed to close response body: %v", err)
 			}
 		}
 	}()
@@ -354,7 +354,7 @@ func (z *zitadelProxyImpl) SyncMeta2Zitadel(ctx context.Context, user *model.Use
 	}
 	if resp.StatusCode != 200 {
 		bodyBytes, _ := io.ReadAll(resp.Body)
-		log.Logger.Errorf("%d Error Detail: %s\n", resp.StatusCode, string(bodyBytes))
+		log.WithContext(ctx).Errorf("%d Error Detail: %s\n", resp.StatusCode, string(bodyBytes))
 		return fmt.Errorf("failed to sync metadata, status code: %d", resp.StatusCode)
 	}
 	return nil

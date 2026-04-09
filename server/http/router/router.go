@@ -10,6 +10,7 @@ import (
 	"github.com/sw5005-sus/ceramicraft-user-mservice/common/middleware"
 	_ "github.com/sw5005-sus/ceramicraft-user-mservice/server/docs"
 	"github.com/sw5005-sus/ceramicraft-user-mservice/server/http/api"
+	"github.com/sw5005-sus/ceramicraft-user-mservice/server/log"
 	swaggerFiles "github.com/swaggo/files"
 	gs "github.com/swaggo/gin-swagger"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
@@ -46,7 +47,7 @@ func NewRouter() *gin.Engine {
 	}
 
 	v1UnAuthed := basicGroup.Group("")
-	v1UnAuthed.Use(otelgin.Middleware(serviceName))
+	v1UnAuthed.Use(otelgin.Middleware(serviceName), log.TraceLoggerMiddleware())
 	{
 		v1UnAuthed.POST("/customer/login", api.UserLogin)
 		v1UnAuthed.POST("/customer/users", api.Register)
@@ -58,7 +59,7 @@ func NewRouter() *gin.Engine {
 		v1UnAuthed.GET("/merchant/login-callback", api.AdminLoginCallback)
 	}
 	v1Authed := basicGroup.Group("")
-	v1Authed.Use(otelgin.Middleware(serviceName))
+	v1Authed.Use(otelgin.Middleware(serviceName), log.TraceLoggerMiddleware())
 	{
 		v1Authed.Use(middleware.AuthMiddleware())
 		v1Authed.POST("/customer/logout", api.UserLogout)

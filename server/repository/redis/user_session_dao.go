@@ -44,7 +44,7 @@ func (dao *userSessionDaoImpl) SetSession(ctx context.Context, userSession *mode
 	if ret.Err() != nil {
 		return ret.Err()
 	}
-	log.Logger.Infof("Set session for user ID %d done", userSession.UserID)
+	log.WithContext(ctx).Infof("Set session for user ID %d done", userSession.UserID)
 	return nil
 }
 
@@ -80,7 +80,7 @@ func (dao *userSessionDaoImpl) DelSession(ctx context.Context, userId int) error
 	if ret.Err() != nil {
 		return ret.Err()
 	}
-	log.Logger.Infof("Deleted session for user ID %d", userId)
+	log.WithContext(ctx).Infof("Deleted session for user ID %d", userId)
 	return nil
 }
 

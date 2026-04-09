@@ -35,7 +35,7 @@ const tokenExpireDuration = 3600 * 24 * 365 // 1 year
 func OAuthLogin(c *gin.Context) {
 	state, err := generateState(16)
 	if err != nil {
-		log.Logger.Errorf("Failed to generate state: %v", err)
+		log.WithContext(c.Request.Context()).Errorf("Failed to generate state: %v", err)
 		c.JSON(http.StatusInternalServerError, data.BaseResponse{ErrMsg: "Failed to generate state"})
 		return
 	}
@@ -82,7 +82,7 @@ func AdminLoginCallback(c *gin.Context) {
 	}
 	token, err := service.GetOAuthService().ZitadelCallback(c.Request.Context(), code)
 	if err != nil {
-		log.Logger.Errorf("OAuth callback error: %v", err)
+		log.WithContext(c.Request.Context()).Errorf("OAuth callback error: %v", err)
 		c.JSON(http.StatusInternalServerError, data.BaseResponse{ErrMsg: "Failed to authenticate with Zitadel"})
 		return
 	}
@@ -119,7 +119,7 @@ func UserLogin(c *gin.Context) {
 	}
 	token, err := service.GetLoginService().Login(c.Request.Context(), user.Email, user.Password)
 	if err != nil {
-		log.Logger.Errorf("Login error: %v", err)
+		log.WithContext(c.Request.Context()).Errorf("Login error: %v", err)
 		c.JSON(http.StatusInternalServerError, data.BaseResponse{ErrMsg: err.Error()})
 		return
 	}
@@ -169,7 +169,7 @@ func OAuthLogout(c *gin.Context) {
 		zitadelLogoutURL, url.QueryEscape(idToken), url.QueryEscape(postLogoutRedirectURI))
 	err := redis.GetUserSessionDao().DelSession(c.Request.Context(), userId)
 	if err != nil {
-		log.Logger.Warnf("Failed to delete user session for user ID %d: %v", userId, err)
+		log.WithContext(c.Request.Context()).Warnf("Failed to delete user session for user ID %d: %v", userId, err)
 	}
 	c.Redirect(http.StatusFound, finalURL)
 }

@@ -54,7 +54,7 @@ func (o *oAuthServiceImpl) CustomerVerify(ctx context.Context, token string) (he
 func (o *oAuthServiceImpl) MerchantVerify(ctx context.Context, token string) (headerSet map[string]string, cookieSet map[string]string, err error) {
 	authUser, err := o.zitadelProxy.ValidateToken(ctx, token, proxy.ADMIN_ZITADEL_USER_KEY, config.Config.ZitadelConfig.AdminClientId)
 	if authUser == nil {
-		log.Logger.Infof("Merchant token validation failed: %v", err)
+		log.WithContext(ctx).Infof("Merchant token validation failed: %v", err)
 		return nil, nil, err
 	}
 	if err == nil {
@@ -65,16 +65,16 @@ func (o *oAuthServiceImpl) MerchantVerify(ctx context.Context, token string) (he
 	// If token is invalid, try to refresh the session and validate again
 	userSession, err := o.userSessionDao.GetSession(ctx, authUser.LocalUserId)
 	if err != nil {
-		log.Logger.Errorf("Failed to get user session from Redis: %v", err)
+		log.WithContext(ctx).Errorf("Failed to get user session from Redis: %v", err)
 		return nil, nil, err
 	}
 	if userSession == nil {
-		log.Logger.Infof("No user session found in Redis for user %d; forcing re-authentication", authUser.LocalUserId)
+		log.WithContext(ctx).Infof("No user session found in Redis for user %d; forcing re-authentication", authUser.LocalUserId)
 		return nil, nil, fmt.Errorf("no active session; please re-authenticate")
 	}
 	newSession, err := o.zitadelProxy.RefreshUserSession(ctx, userSession.RefreshToken)
 	if err != nil {
-		log.Logger.Errorf("Failed to refresh user session: %v", err)
+		log.WithContext(ctx).Errorf("Failed to refresh user session: %v", err)
 		return nil, nil, err
 	}
 	err = o.userSessionDao.SetSession(ctx, newSession)
@@ -92,12 +92,12 @@ func (o *oAuthServiceImpl) MerchantVerify(ctx context.Context, token string) (he
 func (o *oAuthServiceImpl) ZitadelCallback(ctx context.Context, code string) (string, error) {
 	userSession, err := o.zitadelProxy.AuthCallback(ctx, code)
 	if err != nil {
-		log.Logger.Errorf("Failed to handle Zitadel callback: %v", err)
+		log.WithContext(ctx).Errorf("Failed to handle Zitadel callback: %v", err)
 		return "", err
 	}
 	err = o.userSessionDao.SetSession(ctx, userSession)
 	if err != nil {
-		log.Logger.Errorf("Failed to set user session in Redis: %v", err)
+		log.WithContext(ctx).Errorf("Failed to set user session in Redis: %v", err)
 		return "", err
 	}
 	return userSession.IDToken, nil
