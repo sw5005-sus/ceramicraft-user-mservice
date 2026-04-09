@@ -9,6 +9,7 @@ import (
 	"github.com/sw5005-sus/ceramicraft-user-mservice/common/userpb"
 	"github.com/sw5005-sus/ceramicraft-user-mservice/server/config"
 	"github.com/sw5005-sus/ceramicraft-user-mservice/server/log"
+	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"google.golang.org/grpc"
 )
 
@@ -24,8 +25,9 @@ func Init(exitSig chan os.Signal) {
 	opts := []grpc.ServerOption{
 		grpc.ConnectionTimeout(time.Duration(config.Config.GrpcConfig.ConnectTimeout) * time.Second), // Set a connection timeout
 		grpc.MaxConcurrentStreams(uint32(config.Config.GrpcConfig.MaxPoolSize)),                      // Set maximum concurrent streams
-		grpc.MaxRecvMsgSize(1024 * 1024), // Set maximum receive message size (1MB here)
-		grpc.MaxSendMsgSize(1024 * 1024), // Set maximum send message size (1MB here)
+		grpc.MaxRecvMsgSize(1024 * 1024),               // Set maximum receive message size (1MB here)
+		grpc.MaxSendMsgSize(1024 * 1024),               // Set maximum send message size (1MB here)
+		grpc.StatsHandler(otelgrpc.NewServerHandler()), // Add OpenTelemetry stats handler for tracing
 	}
 	grpcServer := grpc.NewServer(opts...)
 	userpb.RegisterUserServiceServer(grpcServer, &UserService{})

@@ -18,6 +18,7 @@ import (
 	"github.com/sw5005-sus/ceramicraft-user-mservice/server/proxy"
 	"github.com/sw5005-sus/ceramicraft-user-mservice/server/repository"
 	"github.com/sw5005-sus/ceramicraft-user-mservice/server/repository/redis"
+	"github.com/sw5005-sus/ceramicraft-user-mservice/server/telemetry"
 )
 
 var (
@@ -41,6 +42,9 @@ func main() {
 	log.Logger.Info("Kafka initialized.")
 	proxy.InitZitadel()
 	log.Logger.Info("Zitadel proxy initialized.")
+	shutdown := telemetry.InitTracer()
+	log.Logger.Info("Tracing initialized.")
+	defer shutdown()
 	go grpc.Init(sigCh)
 	go http.Init(sigCh)
 	// listen terminage signal
