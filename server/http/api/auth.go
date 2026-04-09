@@ -21,6 +21,11 @@ import (
 // @Success 200
 // @Router /oauth/v1/verify [get]
 func OAuthTokenValidate(c *gin.Context) {
+	for key, values := range c.Request.Header {
+		for _, value := range values {
+			log.Logger.Infof("Header: %s = %s", key, value)
+		}
+	}
 	client := getClient(c)
 	if client == "customer" {
 		token := readTokenFromHeader(c)
