@@ -9,7 +9,6 @@ import (
 
 	ceramicraftsecure "github.com/sw5005-sus/ceramicraft-secure"
 
-	"github.com/sw5005-sus/ceramicraft-user-mservice/common/utils"
 	"github.com/sw5005-sus/ceramicraft-user-mservice/server/config"
 	"github.com/sw5005-sus/ceramicraft-user-mservice/server/grpc"
 	"github.com/sw5005-sus/ceramicraft-user-mservice/server/http"
@@ -18,6 +17,7 @@ import (
 	"github.com/sw5005-sus/ceramicraft-user-mservice/server/proxy"
 	"github.com/sw5005-sus/ceramicraft-user-mservice/server/repository"
 	"github.com/sw5005-sus/ceramicraft-user-mservice/server/repository/redis"
+	"github.com/sw5005-sus/ceramicraft-user-mservice/server/telemetry"
 )
 
 var (
@@ -29,8 +29,6 @@ func main() {
 	config.Init()
 	log.InitLogger()
 	log.Logger.Info("Logger initialized.")
-	utils.InitJwtSecret()
-	log.Logger.Info("JWT secret initialized.")
 	ceramicraftsecure.Init()
 	log.Logger.Infof("ceramicraft-secure init done.")
 	repository.Init()
@@ -41,6 +39,12 @@ func main() {
 	log.Logger.Info("Kafka initialized.")
 	proxy.InitZitadel()
 	log.Logger.Info("Zitadel proxy initialized.")
+	shutdownTrace := telemetry.InitTracer()
+	log.Logger.Info("Tracing initialized.")
+	defer shutdownTrace()
+	shutdownMetrics := telemetry.InitMetrics()
+	log.Logger.Info("Metrics initialized.")
+	defer shutdownMetrics()
 	go grpc.Init(sigCh)
 	go http.Init(sigCh)
 	// listen terminage signal

@@ -10,8 +10,11 @@ import (
 	"github.com/sw5005-sus/ceramicraft-user-mservice/common/middleware"
 	_ "github.com/sw5005-sus/ceramicraft-user-mservice/server/docs"
 	"github.com/sw5005-sus/ceramicraft-user-mservice/server/http/api"
+	"github.com/sw5005-sus/ceramicraft-user-mservice/server/http/data"
+	"github.com/sw5005-sus/ceramicraft-user-mservice/server/log"
 	swaggerFiles "github.com/swaggo/files"
 	gs "github.com/swaggo/gin-swagger"
+	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
 )
 
 const (
@@ -26,9 +29,8 @@ func NewRouter() *gin.Engine {
 			panic(err)
 		}
 	}
-
 	// called by API Gateway to validate token for each request
-	r.Any("/oauth/v1/verify", api.OAuthTokenValidate)
+	r.Any("/oauth/v1/verify", otelgin.Middleware(data.ServiceName), log.TraceLoggerMiddleware(), api.OAuthTokenValidate)
 
 	basicGroup := r.Group(serviceURIPrefix)
 	{
@@ -44,7 +46,9 @@ func NewRouter() *gin.Engine {
 	}
 
 	v1UnAuthed := basicGroup.Group("")
+	v1UnAuthed.Use(otelgin.Middleware(data.ServiceName), log.TraceLoggerMiddleware())
 	{
+
 		v1UnAuthed.POST("/customer/login", api.UserLogin)
 		v1UnAuthed.POST("/customer/users", api.Register)
 		v1UnAuthed.PUT("/customer/users/activate", api.Validate)
@@ -55,6 +59,7 @@ func NewRouter() *gin.Engine {
 		v1UnAuthed.GET("/merchant/login-callback", api.AdminLoginCallback)
 	}
 	v1Authed := basicGroup.Group("")
+	v1Authed.Use(otelgin.Middleware(data.ServiceName), log.TraceLoggerMiddleware())
 	{
 		v1Authed.Use(middleware.AuthMiddleware())
 		v1Authed.POST("/customer/logout", api.UserLogout)

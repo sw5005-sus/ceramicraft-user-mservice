@@ -29,7 +29,7 @@ func OAuthTokenValidate(c *gin.Context) {
 		}
 		headers, _, err := service.GetOAuthService().CustomerVerify(c.Request.Context(), token)
 		if err != nil {
-			log.Logger.Errorf("Customer token validation failed: %v", err)
+			log.WithContext(c.Request.Context()).Errorf("Customer token validation failed: %v", err)
 			return
 		}
 		setHeaders(c, headers)
@@ -40,7 +40,7 @@ func OAuthTokenValidate(c *gin.Context) {
 		}
 		headers, cookies, err := service.GetOAuthService().MerchantVerify(c.Request.Context(), token)
 		if err != nil {
-			log.Logger.Errorf("Merchant token validation failed: %v", err)
+			log.WithContext(c.Request.Context()).Errorf("Merchant token validation failed: %v", err)
 			return
 		}
 		setHeaders(c, headers)
@@ -65,7 +65,7 @@ func setCookies(c *gin.Context, cookies map[string]string) {
 func readTokenFromHeader(c *gin.Context) string {
 	authHeader := c.GetHeader("Authorization")
 	if authHeader == "" || len(authHeader) <= 7 || authHeader[:7] != "Bearer " {
-		log.Logger.Infof("no auth header found")
+		log.WithContext(c.Request.Context()).Infof("no auth header found")
 		return ""
 	}
 	return authHeader[7:]
@@ -74,7 +74,7 @@ func readTokenFromHeader(c *gin.Context) string {
 func readTokenFromCookie(c *gin.Context) string {
 	token, err := c.Cookie(bo.OAuthTokenCookieName)
 	if err != nil {
-		log.Logger.Infof("no auth cookie found")
+		log.WithContext(c.Request.Context()).Infof("no auth cookie found")
 		return ""
 	}
 	return token

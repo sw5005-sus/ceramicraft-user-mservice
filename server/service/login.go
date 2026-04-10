@@ -36,14 +36,14 @@ func GetLoginService() *LoginServiceImpl {
 func (ls *LoginServiceImpl) Login(ctx context.Context, email, password string) (string, error) {
 	user, err := ls.userDao.GetUserByEmail(ctx, email)
 	if err != nil {
-		log.Logger.Errorf("Failed to get user by email: %v", err)
+		log.WithContext(ctx).Errorf("Failed to get user by email: %v", err)
 		return "", err
 	}
 	if user == nil {
 		return "", errors.New("user not found")
 	}
 	if VerifyPassword(user.Password, password) != nil {
-		log.Logger.Errorf("Failed to verify password")
+		log.WithContext(ctx).Errorf("Failed to verify password")
 		return "", fmt.Errorf("invalid password")
 	}
 

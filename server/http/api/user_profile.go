@@ -32,7 +32,7 @@ func GetUserRoles(c *gin.Context) {
 	}
 	rolesList, ok := roles.([]string)
 	if !ok {
-		log.Logger.Warnf("Roles in context is not a []string: %v", roles)
+		log.WithContext(c.Request.Context()).Warnf("Roles in context is not a []string: %v", roles)
 		c.JSON(http.StatusInternalServerError, data.BaseResponse{Code: http.StatusInternalServerError, ErrMsg: "Failed to get user roles"})
 		return
 	}
@@ -66,7 +66,7 @@ func GetUserProfile(c *gin.Context) {
 	data.MaskUserProfile(userProfile)
 	userDefaultAddress, err := service.GetUserAddressService().GetDefaultAddress(c, userId.(int))
 	if err != nil {
-		log.Logger.Errorf("Failed to get default address for user ID %d: %v", userId.(int), err)
+		log.WithContext(c.Request.Context()).Errorf("Failed to get default address for user ID %d: %v", userId.(int), err)
 	}
 	userProfile.DefaultAddress = userDefaultAddress
 	c.JSON(http.StatusOK, data.BaseResponse{Code: http.StatusOK, Data: userProfile})
@@ -86,7 +86,7 @@ func GetUserProfile(c *gin.Context) {
 func UpdateUserProfile(c *gin.Context) {
 	var userProfile data.UserProfileVO
 	if err := c.ShouldBindJSON(&userProfile); err != nil {
-		log.Logger.Errorf("Failed to bind user profile JSON: %v", err)
+		log.WithContext(c.Request.Context()).Errorf("Failed to bind user profile JSON: %v", err)
 		c.JSON(http.StatusBadRequest, data.BaseResponse{Code: http.StatusBadRequest, ErrMsg: "Invalid input"})
 		return
 	}
@@ -96,7 +96,7 @@ func UpdateUserProfile(c *gin.Context) {
 		return
 	}
 	if userProfile.ID != userId.(int) {
-		log.Logger.Warnf("User ID mismatch: token ID %d, payload ID %d", userId.(int), userProfile.ID)
+		log.WithContext(c.Request.Context()).Warnf("User ID mismatch: token ID %d, payload ID %d", userId.(int), userProfile.ID)
 		c.JSON(http.StatusBadRequest, data.BaseResponse{Code: http.StatusBadRequest, ErrMsg: "User ID does not match current user"})
 		return
 	}
@@ -107,7 +107,7 @@ func UpdateUserProfile(c *gin.Context) {
 			c.JSON(http.StatusNotFound, data.BaseResponse{Code: http.StatusNotFound, ErrMsg: "User not found"})
 			return
 		}
-		log.Logger.Errorf("Failed to update user profile for user ID %d: %v", userProfile.ID, err)
+		log.WithContext(c.Request.Context()).Errorf("Failed to update user profile for user ID %d: %v", userProfile.ID, err)
 		c.JSON(http.StatusInternalServerError, data.BaseResponse{Code: http.StatusInternalServerError, ErrMsg: err.Error()})
 		return
 	}

@@ -36,6 +36,21 @@ func TestGetUserProfile(t *testing.T) {
 	mockDao.AssertExpectations(t)
 }
 
+func TestGetUserProfile_GetFail(t *testing.T) {
+	initEnv()
+	mockDao := new(mocks.UserDao)
+	userProfileService := &UserProfileServiceImpl{userDao: mockDao}
+	userID := 1
+
+	mockDao.On("GetUserById", context.Background(), userID).Return(nil, sql.ErrConnDone)
+
+	profile, err := userProfileService.GetUserProfile(context.Background(), userID)
+	assert.ErrorIs(t, err, sql.ErrConnDone)
+	assert.Nil(t, profile)
+
+	mockDao.AssertExpectations(t)
+}
+
 func TestGetUserProfile_UserNotFound(t *testing.T) {
 	initEnv()
 	mockDao := new(mocks.UserDao)
@@ -63,6 +78,21 @@ func TestUpdateUserProfile(t *testing.T) {
 
 	err := service.UpdateUserProfile(context.Background(), userID, profile)
 	assert.NoError(t, err)
+
+	mockDao.AssertExpectations(t)
+}
+
+func TestUpdateUserProfile_GetFail(t *testing.T) {
+	initEnv()
+	mockDao := new(mocks.UserDao)
+	service := &UserProfileServiceImpl{userDao: mockDao}
+	userID := 1
+	profile := &data.UserProfileVO{Name: "Updated User", Avatar: "newAvatar123"}
+
+	mockDao.On("GetUserById", context.Background(), userID).Return(nil, sql.ErrConnDone)
+
+	err := service.UpdateUserProfile(context.Background(), userID, profile)
+	assert.ErrorIs(t, err, sql.ErrConnDone)
 
 	mockDao.AssertExpectations(t)
 }

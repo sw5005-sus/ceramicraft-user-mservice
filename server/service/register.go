@@ -60,16 +60,16 @@ func GetRegisterService() *RegisterImpl {
 func (rs *RegisterImpl) OAuthLoginCallback(ctx context.Context, accessToken string) error {
 	user, err := rs.zitadelProxy.VerifyTokenWithBackendIdentity(ctx, accessToken)
 	if err != nil {
-		log.Logger.Errorf("Failed to verify token with Zitadel: %v", err)
+		log.WithContext(ctx).Errorf("Failed to verify token with Zitadel: %v", err)
 		return err
 	}
 	dbUser, err := rs.userDao.GetUserByEmail(ctx, user.Email)
 	if err != nil {
-		log.Logger.Errorf("Failed to get user by email: %v", err)
+		log.WithContext(ctx).Errorf("Failed to get user by email: %v", err)
 		return err
 	}
 	if dbUser != nil && dbUser.Status == model.UserStatusActive {
-		log.Logger.Infof("User already exists and active with email: %s", user.Email)
+		log.WithContext(ctx).Infof("User already exists and active with email: %s", user.Email)
 		return nil
 	} else if dbUser == nil {
 		currentTime := time.Now()
@@ -78,7 +78,7 @@ func (rs *RegisterImpl) OAuthLoginCallback(ctx context.Context, accessToken stri
 		user.UpdatedAt = currentTime
 		userId, err := rs.userDao.CreateUser(ctx, user)
 		if err != nil {
-			log.Logger.Errorf("Failed to create user: %v", err)
+			log.WithContext(ctx).Errorf("Failed to create user: %v", err)
 			return err
 		}
 		user.ID = userId
@@ -88,37 +88,37 @@ func (rs *RegisterImpl) OAuthLoginCallback(ctx context.Context, accessToken stri
 
 	err = rs.syncLocalUserId2Zitadel(ctx, user)
 	if err != nil {
-		log.Logger.Errorf("Failed to sync Zitadel: userId:%d\t%v", user.ID, err)
+		log.WithContext(ctx).Errorf("Failed to sync Zitadel: userId:%d\t%v", user.ID, err)
 		return err
 	}
-	log.Logger.Infof("Local userId sync to zitadel done.\tuserId: %d\tsub=%s", user.ID, user.ZitadelSub)
+	log.WithContext(ctx).Infof("Local userId sync to zitadel done.\tuserId: %d\tsub=%s", user.ID, user.ZitadelSub)
 	err = rs.activationNotify(ctx, user.ID)
 	if err != nil {
 		return err
 	}
-	log.Logger.Infof("User activation event produced.\tuserId: %d\tsub=%s", user.ID, user.ZitadelSub)
+	log.WithContext(ctx).Infof("User activation event produced.\tuserId: %d\tsub=%s", user.ID, user.ZitadelSub)
 	err = rs.saveActiveStatus(ctx, user)
 	if err != nil {
 		return err
 	}
-	log.Logger.Infof("OAuth user activation status update done.\tuserId=%d\tsub=%s", user.ID, user.ZitadelSub)
+	log.WithContext(ctx).Infof("OAuth user activation status update done.\tuserId=%d\tsub=%s", user.ID, user.ZitadelSub)
 	return nil
 }
 
 func (rs *RegisterImpl) Register(ctx context.Context, email, password string) error {
 	user, err := rs.userDao.GetUserByEmail(ctx, email)
 	if err != nil {
-		log.Logger.Errorf("Failed to get user by email: %v", err)
+		log.WithContext(ctx).Errorf("Failed to get user by email: %v", err)
 		return err
 	}
 	if user != nil && user.Status == model.UserStatusActive {
-		log.Logger.Errorf("User already exists with email: %s", email)
+		log.WithContext(ctx).Errorf("User already exists with email: %s", email)
 		return errors.New("user already exists")
 	}
 	if user == nil {
 		hashedPassword, err := HashPassword(password)
 		if err != nil {
-			log.Logger.Errorf("Failed to hash password: %v", err)
+			log.WithContext(ctx).Errorf("Failed to hash password: %v", err)
 			return err
 		}
 		user = &model.User{
@@ -130,13 +130,13 @@ func (rs *RegisterImpl) Register(ctx context.Context, email, password string) er
 		}
 		_, err = rs.userDao.CreateUser(ctx, user)
 		if err != nil {
-			log.Logger.Errorf("Failed to create user: %v", err)
+			log.WithContext(ctx).Errorf("Failed to create user: %v", err)
 			return err
 		}
 	}
 	code, err := generateVerificationCode()
 	if err != nil {
-		log.Logger.Errorf("Failed to generate verification code: %v", err)
+		log.WithContext(ctx).Errorf("Failed to generate verification code: %v", err)
 		return err
 	}
 	err = rs.userActivation.Replace(ctx, &model.UserActivation{
@@ -146,51 +146,51 @@ func (rs *RegisterImpl) Register(ctx context.Context, email, password string) er
 		ExpiresAt: time.Now().Add(activationExpiryDuration),
 	})
 	if err != nil {
-		log.Logger.Errorf("Failed to create user activation: %v", err)
+		log.WithContext(ctx).Errorf("Failed to create user activation: %v", err)
 		return err
 	}
 	err = rs.emailService.Send("Your activation code is: "+code, email, "CermiCraft Activation Code")
 	if err != nil {
-		log.Logger.Errorf("Failed to send activation email: %v", err)
+		log.WithContext(ctx).Errorf("Failed to send activation email: %v", err)
 		return err
 	}
-	log.Logger.Infof("Activation email sent for user: %d", user.ID)
+	log.WithContext(ctx).Infof("Activation email sent for user: %d", user.ID)
 	return nil
 }
 
 func (rs *RegisterImpl) VerifyAndActivate(ctx context.Context, activationCode string) error {
 	userActivation, err := rs.userActivation.GetByCode(ctx, activationCode)
 	if err != nil {
-		log.Logger.Errorf("Failed to get user activation by code: %v", err)
+		log.WithContext(ctx).Errorf("Failed to get user activation by code: %v", err)
 		return err
 	}
 	if userActivation == nil || userActivation.ExpiresAt.Before(time.Now()) {
-		log.Logger.Warnf("Invalid or expired activation code: %s", activationCode)
+		log.WithContext(ctx).Warnf("Invalid or expired activation code: %s", activationCode)
 		return errors.New("invalid or expired activation code")
 	}
 	err = rs.txBeginner.Transaction(func(tx *gorm.DB) error {
 		curTime := time.Now()
 		err = rs.userDao.UpdateUserInTransaction(ctx, &model.User{ID: userActivation.UserID, Status: model.UserStatusActive, ActivateTime: &curTime, UpdatedAt: curTime}, tx)
 		if err != nil {
-			log.Logger.Errorf("Failed to update user status: %v", err)
+			log.WithContext(ctx).Errorf("Failed to update user status: %v", err)
 			return err
 		}
-		log.Logger.Infof("User %d activated successfully", userActivation.UserID)
+		log.WithContext(ctx).Infof("User %d activated successfully", userActivation.UserID)
 		err = rs.userActivation.DeleteByUserId(ctx, userActivation.UserID, tx)
 		if err != nil {
-			log.Logger.Warnf("Failed to delete user activation after activation: %v", err)
+			log.WithContext(ctx).Warnf("Failed to delete user activation after activation: %v", err)
 			return err
 		}
-		log.Logger.Infof("User activation %d marked as used", userActivation.ID)
+		log.WithContext(ctx).Infof("User activation %d marked as used", userActivation.ID)
 		err = rs.activationNotify(ctx, userActivation.UserID)
 		if err != nil {
-			log.Logger.Errorf("Failed to produce user activated event: %v", err)
+			log.WithContext(ctx).Errorf("Failed to produce user activated event: %v", err)
 			return err
 		}
 		return nil
 	})
 	if err != nil {
-		log.Logger.Errorf("Failed to start transaction: %v", err)
+		log.WithContext(ctx).Errorf("Failed to start transaction: %v", err)
 		return err
 	}
 	return nil

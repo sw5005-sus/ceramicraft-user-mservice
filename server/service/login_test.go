@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"os"
 	"testing"
 
@@ -71,6 +72,25 @@ func TestLogin(t *testing.T) {
 		})
 	}
 }
+
+func TestLogin_GetFail(t *testing.T) {
+	initEnv()
+	ctx := context.Background()
+	mockDao := new(mocks.UserDao)
+	loginService := &LoginServiceImpl{
+		userDao: mockDao,
+	}
+	mockDao.On("GetUserByEmail", mock.Anything, mock.Anything).Return(nil, errors.New("database error"))
+	token, err := loginService.Login(ctx, "test@example.com", "password")
+	if err == nil || err.Error() != "database error" {
+		t.Errorf("expected error: database error, got: %v", err)
+	}
+	if token != "" {
+		t.Errorf("expected empty token, got: %s", token)
+	}	
+}
+
+
 func TestGetLoginService(t *testing.T) {
 	initEnv()
 

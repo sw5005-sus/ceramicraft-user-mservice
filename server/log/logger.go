@@ -1,12 +1,15 @@
 package log
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/sw5005-sus/ceramicraft-user-mservice/server/config"
+	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
@@ -27,6 +30,40 @@ func InitLogger() {
 		core = fileCore
 	}
 	Logger = zap.New(core, zap.AddCaller()).Sugar()
+}
+
+type ctxKey struct{}
+
+func WithContext(ctx context.Context) *zap.SugaredLogger {
+	if ctx == nil {
+		return Logger
+	}
+	if l, ok := ctx.Value(ctxKey{}).(*zap.SugaredLogger); ok && l != nil {
+		fmt.Println("logger found in context, will use it")
+		return l
+	}
+	return Logger
+}
+
+func TraceLoggerMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		span := trace.SpanFromContext(c.Request.Context())
+		sc := span.SpanContext()
+
+		logger := Logger
+		if sc.IsValid() {
+			fmt.Println("span valid, will log with trace")
+			logger = Logger.With(
+				"trace_id", sc.TraceID().String(),
+				"span_id", sc.SpanID().String(),
+				"service_name", "user-ms",
+			)
+		}
+
+		ctx := context.WithValue(c.Request.Context(), ctxKey{}, logger)
+		c.Request = c.Request.WithContext(ctx)
+		c.Next()
+	}
 }
 
 func getLogLevel() zapcore.Level {

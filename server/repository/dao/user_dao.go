@@ -48,10 +48,10 @@ func (dao *UserDaoImpl) CreateUser(ctx context.Context, user *model.User) (int, 
 		if errors.Is(ret.Error, gorm.ErrDuplicatedKey) {
 			return 0, errors.New("user already exists")
 		}
-		log.Logger.Errorf("Failed to create user: ", ret.Error)
+		log.WithContext(ctx).Errorf("Failed to create user: ", ret.Error)
 		return 0, ret.Error
 	}
-	log.Logger.Infof("User created with ID: %d", user.ID)
+	log.WithContext(ctx).Infof("User created with ID: %d", user.ID)
 	_ = user.Decrypt() //recover
 	return user.ID, nil
 }
@@ -63,7 +63,7 @@ func (dao *UserDaoImpl) UpdateUserInTransaction(ctx context.Context, user *model
 	}
 	ret := tx.WithContext(ctx).Model(&model.User{}).Where("id = ?", user.ID).Updates(user)
 	if ret.Error != nil {
-		log.Logger.Errorf("Failed to update user: %v", ret.Error)
+		log.WithContext(ctx).Errorf("Failed to update user: %v", ret.Error)
 		return ret.Error
 	}
 	_ = user.Decrypt() //recover
@@ -77,7 +77,7 @@ func (dao *UserDaoImpl) UpdateUser(ctx context.Context, user *model.User) error 
 	}
 	ret := dao.db.WithContext(ctx).Model(&model.User{}).Where("id = ?", user.ID).Updates(user)
 	if ret.Error != nil {
-		log.Logger.Errorf("Failed to update user: %v", ret.Error)
+		log.WithContext(ctx).Errorf("Failed to update user: %v", ret.Error)
 		return ret.Error
 	}
 	_ = user.Decrypt() //recover
@@ -88,7 +88,7 @@ func (dao *UserDaoImpl) GetUserByEmail(ctx context.Context, email string) (*mode
 	var user model.User
 	emailHash, err := model.GetEmailHash(email)
 	if err != nil {
-		log.Logger.Errorf("Failed to get email hash: %v", err)
+		log.WithContext(ctx).Errorf("Failed to get email hash: %v", err)
 		return nil, err
 	}
 	ret := dao.db.WithContext(ctx).Where("email = ? or email_hash=?", email, emailHash).First(&user)
@@ -96,11 +96,11 @@ func (dao *UserDaoImpl) GetUserByEmail(ctx context.Context, email string) (*mode
 		if errors.Is(ret.Error, gorm.ErrRecordNotFound) {
 			return nil, nil
 		}
-		log.Logger.Errorf("Failed to get user by email: %v", ret.Error)
+		log.WithContext(ctx).Errorf("Failed to get user by email: %v", ret.Error)
 		return nil, ret.Error
 	}
 	if err := user.Decrypt(); err != nil {
-		log.Logger.Errorf("Failed to decrypt user data (email=%s): %v", email, err)
+		log.WithContext(ctx).Errorf("Failed to decrypt user data (email=%s): %v", email, err)
 		return nil, err
 	}
 	return &user, nil
@@ -113,11 +113,11 @@ func (dao *UserDaoImpl) GetUserById(ctx context.Context, id int) (*model.User, e
 		if errors.Is(ret.Error, gorm.ErrRecordNotFound) {
 			return nil, nil
 		}
-		log.Logger.Errorf("Failed to get user by id: %v", ret.Error)
+		log.WithContext(ctx).Errorf("Failed to get user by id: %v", ret.Error)
 		return nil, ret.Error
 	}
 	if err := user.Decrypt(); err != nil {
-		log.Logger.Errorf("Failed to decrypt user data: %v", err)
+		log.WithContext(ctx).Errorf("Failed to decrypt user data: %v", err)
 		return nil, err
 	}
 	return &user, nil
