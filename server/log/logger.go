@@ -56,6 +56,7 @@ func TraceLoggerMiddleware() gin.HandlerFunc {
 			logger = Logger.With(
 				"trace_id", sc.TraceID().String(),
 				"span_id", sc.SpanID().String(),
+				"service_name", "user-ms",
 			)
 		}
 

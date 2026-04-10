@@ -217,6 +217,20 @@ func TestVerifyAndActivate(t *testing.T) {
 			t.Fatalf("Expected 'invalid or expired activation code' error, got %v", err)
 		}
 	})
+
+	t.Run("GetByCode database error", func(t *testing.T) {
+		userActivationDao := new(dao_mock.UserActivationDao)
+		userActivationDao.On("GetByCode", mock.Anything, "db-error-code").Return(nil, assert.AnError)
+		service := &RegisterImpl{
+			userActivation: userActivationDao,
+		}
+
+		err := service.VerifyAndActivate(ctx, "db-error-code")
+		if err == nil || !errors.Is(err, assert.AnError) {
+			t.Fatalf("Expected database error, got %v", err)
+		}
+	})
+
 }
 func TestGetRegisterService(t *testing.T) {
 	initEnv()
