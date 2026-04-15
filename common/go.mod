@@ -1,6 +1,6 @@
 module github.com/sw5005-sus/ceramicraft-user-mservice/common
 
-go 1.25.8
+go 1.25.9
 
 require (
 	github.com/gin-gonic/gin v1.11.0

@@ -1,10 +1,14 @@
-# Use the official Go image with version 1.24
-FROM golang:1.25.8-alpine AS builder 
+# Use the official Go image with version 1.25
+FROM golang:1.25.9-alpine AS builder 
 
 RUN apk update && \
     apk add --no-cache \
     curl \
-    "zlib>=1.3.2-r0"
+    "zlib>=1.3.2-r0" \
+    "libcrypto3>=3.5.6-r0" \
+    "libssl3>=3.5.6-r0" \
+    "musl>=1.2.5-r23" \
+    "musl-utils>=1.2.5-r23"
 
 # Set the working directory inside the container
 WORKDIR /app

@@ -1,7 +1,7 @@
 # ceramicraft-commodity-mservice
 # 🚀 [ceramicraft-user-mservice]: user management system
 
-![Go Version](https://img.shields.io/badge/go-1.24.9-blue.svg)
+![Go Version](https://img.shields.io/badge/go-1.25.9-blue.svg)
 ![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 
@@ -46,7 +46,7 @@ This service is part of the **cerami-craft** project, responsible for user_accou
 
 ### Prerequisites
 
-* Go `[1.24.9]`
+* Go `[1.25.9]`
 * docker compose
 
 ### Deployment with Docker Compose

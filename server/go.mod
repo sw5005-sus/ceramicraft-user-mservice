@@ -1,6 +1,6 @@
 module github.com/sw5005-sus/ceramicraft-user-mservice/server
 
-go 1.25.8
+go 1.25.9
 
 require (
 	github.com/MicahParks/keyfunc/v3 v3.8.0
