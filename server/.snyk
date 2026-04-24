@@ -9,3 +9,7 @@ ignore:
     - '*':
       reason: 'Internal toolchain dependency of Go 1.25.7. Replacing in go.mod does not clear toolchain path.'
       expires: '2027-01-01T00:00:00.000Z'
+  'SNYK-GOLANG-GITHUBCOMHASHICORPVAULTAPI-16109648':
+    - '*':
+      reason: 'Vault API v2.0.0 is listed as fixed by Snyk, but the Go module is not currently resolvable; accepted temporarily for course demo pipeline.'
+      expires: '2026-05-31T23:59:59.999Z'
